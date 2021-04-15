@@ -42,6 +42,12 @@ function ControllerYTCR(context) {
     this.isConnected = false;
 }
 
+ControllerYTCR.prototype.logDebug = function(...messages) {
+    if (this.debug) {
+        console.log(...messages);
+    }
+}
+
 ControllerYTCR.prototype.getUIConfig = function() {
     let self = this;
     let defer = libQ.defer();
@@ -126,7 +132,6 @@ ControllerYTCR.prototype.configSaveConnection = function(data) {
 }
 
 ControllerYTCR.prototype.configConfirmSavePort = function(port) {
-console.log('saveport: ' + port);
     let self = this;
     self.config.set('port', port);
     self.restart().then( () => {
@@ -139,6 +144,7 @@ ControllerYTCR.prototype.configSaveOther = function(data) {
     this.config.set('defaultAutoplay', data['defaultAutoplay']);
     this.config.set('debug', data['debug']);
 
+    this.debug = data['debug'];
     if (this.receiver) {
         this.receiver.setDefaultAutoplay(data['defaultAutoplay']);
         this.receiver.setDebug(data['debug']);
@@ -172,7 +178,10 @@ ControllerYTCR.prototype.onStart = function() {
     ytcr.init(self.context, self.config);
     self.isUnsettingVolatile = false;
 
-    self.volumeControl = new VolumeControl(self.commandRouter);
+    self.debug = ytcr.getConfigValue('debug', false);
+    self.volumeControl = new VolumeControl(self.commandRouter, {
+        logDebug: self.logDebug.bind(self)
+    });
 
     let playerOptions = {
         mpd: self.getMpdConfig(),
@@ -185,7 +194,7 @@ ControllerYTCR.prototype.onStart = function() {
         self.receiver = receiver.instance(player, { 
             port: ytcr.getConfigValue('port', 8098),
             defaultAutoplay: ytcr.getConfigValue('defaultAutoplay', true),
-            debug: ytcr.getConfigValue('debug', false)
+            debug: self.debug
         });
 
         self.receiver.on('connected', client => {
@@ -206,30 +215,29 @@ ControllerYTCR.prototype.onStart = function() {
 
         self.player.on('command', async(cmd, args) => {
             if (cmd === 'play' && !self.isCurrentService()) {
-                self.logger.info('[ytcr] play command received while not being the current service.');
+                self.logDebug('[ytcr] play command received while not being the current service.');
                 // Stop any playback by the currently active service
-                self.logger.info('[ytcr] Stopping playback by current service...');
+                self.logDebug('[ytcr] Stopping playback by current service...');
                 await kewToJSPromise(self.commandRouter.volumioStop());
                 // Unset any volatile state of currently active service
                 let sm = ytcr.getStateMachine();
                 if (sm.isVolatile) {
                     sm.unSetVolatile();
                 }
-                self.logger.info('[ytcr] Setting ourselves as the current service...');
+                self.logDebug('[ytcr] Setting ourselves as the current service...');
                 self.setVolatile();
                 await self.pushEmptyState();
                 await self.player.notifyVolumeChanged();
             }
             else if (cmd === 'setVolume' && !self.isCurrentService()) {
-                self.logger.info('[ytcr] setVolume command received, but we are not the current service. Putting player to sleep...');
+                self.logDebug('[ytcr] setVolume command received, but we are not the current service. Putting player to sleep...');
                 self.player.sleep();
             }
         });
 
         self.player.on('stateChanged', async(state, moreInfo) => {
             if (self.isCurrentService() && self.isConnected) {
-                console.log('[ytcr] Received stateChanged from player: ');
-                console.log(state);
+                self.logDebug('[ytcr] Received stateChanged from player: ', state);
                 if (state.status === MPDPlayer.STATUS_PLAYING && moreInfo.triggeredBy === 'play') {
                     ytcr.toast('success', ytcr.getI18n('YTCR_PLAY_STARTED', state.title));
                 }
@@ -253,7 +261,7 @@ ControllerYTCR.prototype.onStart = function() {
                     // setVolume() will trigger volumioupdatevolume() which will trigger the statemachine's 
                     // pushState() - but old volatile state with outdated info will be used. 
                     // So we push the latest state here to refresh the old volatile state.
-                    console.log(`[ytcr] Update volume to ${volume.vol}`);
+                    self.logDebug(`[ytcr] Update volume to ${volume.vol}`);
                     await self.pushState();
                     await self.volumeControl.setVolume(volume.vol, 'volumio');
                     await self.pushState(); // Do it once more
@@ -284,7 +292,7 @@ ControllerYTCR.prototype.onStart = function() {
         defer.resolve();
     })
     .catch(error => {
-        console.log(error.stack)
+        self.logDebug(error.stack);
         defer.reject(error);
     });
 
@@ -303,7 +311,7 @@ ControllerYTCR.prototype.onStop = function() {
         defer.resolve();
     })
     .catch(error => {
-        console.log(error.stack)
+        self.logDebug(error.stack)
         defer.reject(error);
     });
 
@@ -357,7 +365,7 @@ ControllerYTCR.prototype.onUnsetVolatile = function() {
 }
 
 ControllerYTCR.prototype.pushEmptyState = async function() {
-    this.logger.info('[ytcr] Pushing empty state...');
+    this.logDebug('[ytcr] Pushing empty state...');
     // Need to first push empty state with pause status first so the empty volatileState gets registered 
     // by statemachine.
     this.commandRouter.servicePushState(Object.assign(EMPTY_STATE, { status: 'pause' }), this.serviceName);
@@ -389,8 +397,7 @@ ControllerYTCR.prototype.pushState = async function(state) {
         volume: state.volume
     };
 
-    console.log('[ytcr] pushState():');
-    console.log(volumioState);
+    this.logDebug('[ytcr] pushState(): ', volumioState);
 
     this.commandRouter.servicePushState(volumioState, this.serviceName);
 }
@@ -459,13 +466,14 @@ function kewToJSPromise(promise) {
 
 class VolumeControl {
 
-    constructor(commandRouter) {
+    constructor(commandRouter, logger) {
         this.commandRouter = commandRouter;
+        this.logger = logger;
         this.currentVolume = null;
     }
 
     async setVolume(volume, source) {
-        console.log(`[ytcr.VolumeControl] Setting volume to ${volume}`);
+        this.logger.logDebug(`[ytcr.VolumeControl] Setting volume to ${volume}`);
         this.currentVolume = volume;
         if (source !== 'volumio') {
             this.commandRouter.volumiosetvolume(volume);
@@ -490,7 +498,7 @@ class VolumeControl {
         }
         return result.then( volume => {
             self.currentVolume = volume;
-            console.log(`[ytcr.VolumeControl] Returning volume: ${volume}`);
+            self.logger.logDebug(`[ytcr.VolumeControl] Returning volume: ${volume}`);
             return volume;
         })
         .catch( error => {
