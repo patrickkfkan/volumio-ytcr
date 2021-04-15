@@ -1,0 +1,19 @@
+{
+  "name": "async-task-queue",
+  "main": "async-task-queue.js",
+  "version": "1.0.0",
+  "homepage": "https://github.com/talsu/async-task-queue#readme",
+  "authors": [
+    "talsu <talsu84@gmail.com>"
+  ],
+  "description": "Javascript task queue without any timer (interval, setTimeout ..)",
+  "keywords": ["queue", "async-task-queue", "task queue"],
+  "license": "BSD-3-Clause",
+  "ignore": [
+    "**/.*",
+    "node_modules",
+    "bower_components",
+    "test",
+    "tests"
+  ]
+}

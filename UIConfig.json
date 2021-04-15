@@ -1,0 +1,68 @@
+{
+  "page": {
+    "label": "TRANSLATE.YTCR_CONFIGURATION"
+  },
+  "sections": [
+    {
+      "id": "section_connection",
+      "element": "section",
+      "label": "TRANSLATE.YTCR_CONNECTION",
+      "icon": "fa-plug",
+      "onSave": {
+        "type": "controller",
+        "endpoint": "music_service/ytcr",
+        "method": "configSaveConnection"
+      },
+      "saveButton": {
+        "label": "TRANSLATE.YTCR_SAVE",
+        "data": [
+          "port"
+        ]
+      },
+      "content": [
+        {
+          "id": "port",
+          "type": "number",
+          "element": "input",
+          "label": "TRANSLATE.YTCR_PORT",
+          "doc": "TRANSLATE.YTCR_PORT_DESC",
+          "value": "8098"
+        }
+      ]
+    },
+		{
+      "id": "section_other",
+      "element": "section",
+      "label": "TRANSLATE.YTCR_OTHER_CONFIG",
+      "icon": "fa-cog",
+      "onSave": {
+        "type": "controller",
+        "endpoint": "music_service/ytcr",
+        "method": "configSaveOther"
+      },
+      "saveButton": {
+        "label": "TRANSLATE.YTCR_SAVE",
+        "data": [
+          "defaultAutoplay",
+          "debug"
+        ]
+      },
+      "content": [
+        {
+          "id": "defaultAutoplay",
+          "element": "switch",
+          "label": "TRANSLATE.YTCR_AUTOPLAY_CONNECT",
+          "doc": "TRANSLATE.YTCR_AUTOPLAY_DESC",
+          "value": true
+        },
+        {
+          "id": "debug",
+          "element": "switch",
+          "label": "TRANSLATE.YTCR_DEBUG",
+          "doc": "TRANSLATE.YTCR_DEBUG_DESC",
+          "value": false
+        }
+      ]
+    }
+  ]
+}
