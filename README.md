@@ -41,9 +41,9 @@ When a new version of the plugin becomes available, you can ssh into your Volumi
 
 ```
 volumio:~$ cd ~/ytcr-plugin/volumio-ytcr/
-volumio:~/ytcr-plugin/volumio-ytcr$ rm -rf node_modules
 volumio:~/ytcr-plugin/volumio-ytcr$ git pull
 ...
+volumio:~/ytcr-plugin/volumio-ytcr$ rm -rf node_modules
 volumio:~/ytcr-plugin/volumio-ytcr$ volumio plugin update
 
 This command will update the plugin on your device
