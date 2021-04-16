@@ -246,6 +246,7 @@ ControllerYTCR.prototype.onStart = function() {
                     await self.pushEmptyState();
 
                     if (moreInfo.triggeredBy === 'playbackFinished') {
+                        self.logDebug('[ytcr] Playback finished - request play next.');
                         await self.player.requestPlayNext();
                     }                    
                 }
