@@ -40,10 +40,10 @@ With the plugin enabled, you can now begin casting:
 When a new version of the plugin becomes available, you can ssh into your Volumio device and update as follows (assuming you have not deleted the directory which you cloned from this repo):
 
 ```
-volumio:~$ cd ~/ytcr-plugin/volumio-ytcr/
-volumio:~/ytcr-plugin/volumio-ytcr$ git pull
-...
-volumio:~/ytcr-plugin/volumio-ytcr$ rm -rf node_modules
+volumio:~$ cd ~/ytcr-plugin
+volumio:~/ytcr-plugin$ rm -rf volumio-ytcr
+volumio:~/ytcr-plugin$ git clone https://github.com/patrickkfkan/volumio-ytcr.git
+volumio:~/ytcr-plugin$ cd volumio-ytcr
 volumio:~/ytcr-plugin/volumio-ytcr$ volumio plugin update
 
 This command will update the plugin on your device
