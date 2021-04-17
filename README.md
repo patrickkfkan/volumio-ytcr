@@ -78,5 +78,8 @@ Volumio 3.x ships with a recent version of MPD, and so does not have to be updat
 
 # Changelog
 
+0.1.0a-20210417
+- Add livestream support
+
 0.1.0a
 - Initial release
