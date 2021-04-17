@@ -395,7 +395,8 @@ ControllerYTCR.prototype.pushState = async function(state) {
         bitdepth: state.bitDepth,
         bitrate: state.bitrate,
         channels: state.channels,
-        volume: state.volume
+        volume: state.volume,
+        isStreaming: state.isPlayingLiveStream
     };
 
     this.logDebug('[ytcr] pushState(): ', volumioState);
