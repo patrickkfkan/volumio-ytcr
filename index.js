@@ -218,7 +218,12 @@ ControllerYTCR.prototype.onStart = function() {
                 self.logDebug('[ytcr] play command received while not being the current service.');
                 // Stop any playback by the currently active service
                 self.logDebug('[ytcr] Stopping playback by current service...');
-                await kewToJSPromise(self.commandRouter.volumioStop());
+                try {
+                    await kewToJSPromise(self.commandRouter.volumioStop());
+                } catch (error) {
+                    self.logDebug('[ytcr] An error occurred while stopping playback by current service: ', error);
+                    self.logDebug('[ytcr] Continuing anyway...');
+                }
                 // Unset any volatile state of currently active service
                 let sm = ytcr.getStateMachine();
                 if (sm.isVolatile) {
