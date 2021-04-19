@@ -456,6 +456,12 @@ function jsPromiseToKew(promise) {
 }
 
 function kewToJSPromise(promise) {
+    // Guard against a JS promise from being passed to this function.
+    // E.g. Spotify Connect's stop()
+    if (typeof promise.catch === 'function' && typeof promise.fail === undefined) {
+        // JS promise - return as is
+        return promise;
+    }
     return new Promise( (resolve, reject) => {
         promise.then( result => {
             resolve(result);
