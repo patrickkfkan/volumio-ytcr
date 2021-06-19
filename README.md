@@ -78,6 +78,9 @@ Volumio 3.x ships with a recent version of MPD, and so does not have to be updat
 
 # Changelog
 
+0.1.0a-20210620
+- Update yt-cast-receiver module
+
 0.1.0a-20210419
 - More robust transition from another service
 
