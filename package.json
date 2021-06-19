@@ -24,6 +24,7 @@
     "string-format": "^2.0.0",
     "v-conf": "^1.4.2",
     "ytdl-core": "^4.2.1",
-    "yt-cast-receiver": "0.1.0-b"
+    "yt-cast-receiver": "0.1.0-b",
+    "url-polyfill": "1.1.12"
   }
 }
