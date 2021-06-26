@@ -25,6 +25,6 @@
     "string-format": "^2.0.0",
     "v-conf": "^1.4.2",
     "ytdl-core": "github:patrickkfkan/node-ytdl-core#4.8.3-node8",
-    "yt-cast-receiver": "0.1.0-b"
+    "yt-cast-receiver": "github:patrickkfkan/yt-cast-receiver#node8-compat"
   }
 }
