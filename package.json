@@ -24,7 +24,7 @@
     "network-interfaces": "^1.1.0",
     "string-format": "^2.0.0",
     "v-conf": "^1.4.2",
-    "ytdl-core": "^4.2.1",
+    "ytdl-core": "github:patrickkfkan/node-ytdl-core#4.8.3-node8",
     "yt-cast-receiver": "0.1.0-b",
     "url-polyfill": "1.1.12"
   }
