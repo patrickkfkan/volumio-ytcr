@@ -1,6 +1,6 @@
 {
   "name": "ytcr",
-  "version": "0.1.0a-20210620-2",
+  "version": "0.1.0a-20210627",
   "description": "YouTube Cast Receiver for Volumio",
   "main": "index.js",
   "scripts": {

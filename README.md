@@ -78,6 +78,11 @@ Volumio 3.x ships with a recent version of MPD, and so does not have to be updat
 
 # Changelog
 
+0.1.0a-20210627
+- Adapt to YouTube changes
+- Really fix compatibility with Volumio 2.x
+- Add 'Bind to Network Interface' setting
+
 0.1.0a-20210620-2
 - Fix compatibility with Volumio 2.x
 
