@@ -16,7 +16,8 @@
       "saveButton": {
         "label": "TRANSLATE.YTCR_SAVE",
         "data": [
-          "port"
+          "port",
+          "bindToIf"
         ]
       },
       "content": [
@@ -27,6 +28,17 @@
           "label": "TRANSLATE.YTCR_PORT",
           "doc": "TRANSLATE.YTCR_PORT_DESC",
           "value": "8098"
+        },
+        {
+          "id": "bindToIf",
+          "element": "select",
+          "doc": "",
+          "value": {
+              "value": "",
+              "label": "TRANSLATE.YTCR_BIND_TO_ALL_IF"
+          },
+          "label": "TRANSLATE.YTCR_BIND_TO_IF",
+          "options": []
         }
       ]
     },

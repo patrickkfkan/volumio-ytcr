@@ -4,6 +4,7 @@ const path = require('path');
 global.ytcrPluginLibRoot = path.resolve(__dirname) + '/lib';
 
 const libQ = require('kew');
+const ni = require('network-interfaces');
 const receiver = require('yt-cast-receiver');
 const ytcr = require(ytcrPluginLibRoot + '/ytcr');
 const MPDPlayer = require(ytcrPluginLibRoot + '/mpd-player');
@@ -64,8 +65,27 @@ ControllerYTCR.prototype.getUIConfig = function() {
             let port = ytcr.getConfigValue('port', 8098);
             let defaultAutoplay = ytcr.getConfigValue('defaultAutoplay', true);
             let debug = ytcr.getConfigValue('debug', false);
+            let bindToIf = ytcr.getConfigValue('bindToIf', '');
+
+            let availableIf = getNetworkInterfaces();
+            let ifOpts = [{
+                value: '',
+                label: ytcr.getI18n('YTCR_BIND_TO_ALL_IF')
+            }];
+            connectionUIConf.content[1].value = ifOpts[0];
+            availableIf.forEach( info => {
+                let opt = {
+                    value: info.name,
+                    label: `${info.name} (${info.ip})`
+                };
+                ifOpts.push(opt);
+                if (bindToIf === info.name) {
+                    connectionUIConf.content[1].value = opt;
+                }
+            });
 
             connectionUIConf.content[0].value = port;
+            connectionUIConf.content[1].options = ifOpts;
             otherUIConf.content[0].value = defaultAutoplay;
             otherUIConf.content[1].value = debug;
 
@@ -96,12 +116,14 @@ ControllerYTCR.prototype.configSaveConnection = function(data) {
         ytcr.toast('error', ytcr.getI18n('YTCR_INVALID_PORT'));
         return;
     }
+    let oldBindToIf = ytcr.getConfigValue('bindToIf', '');
+    let bindToIf = data['bindToIf'].value;
 
-    if (oldPort !== port) {
+    if (oldPort !== port || oldBindToIf !== bindToIf) {
         if (this.isConnected && this.connectedClient) {
             var modalData = {
                 title: ytcr.getI18n('YTCR_CONFIGURATION'),
-                message: ytcr.getI18n('YTCR_PORT_CONFIRM', this.connectedClient.name),
+                message: ytcr.getI18n('YTCR_CONF_RESTART_CONFIRM', this.connectedClient.name),
                 size: 'lg',
                 buttons: [
                   {
@@ -114,8 +136,8 @@ ControllerYTCR.prototype.configSaveConnection = function(data) {
                     emit: 'callMethod',
                     payload: {
                         'endpoint': 'music_service/ytcr',
-                        'method': 'configConfirmSavePort',
-                        'data': port
+                        'method': 'configConfirmSaveConnection',
+                        'data': {port, bindToIf}
                     }
                   }  
                 ]
@@ -123,7 +145,7 @@ ControllerYTCR.prototype.configSaveConnection = function(data) {
             this.commandRouter.broadcastMessage("openModal", modalData);
         }
         else {
-            this.configConfirmSavePort(port);
+            this.configConfirmSaveConnection({port, bindToIf});
         }
     }
     else {
@@ -131,9 +153,10 @@ ControllerYTCR.prototype.configSaveConnection = function(data) {
     }
 }
 
-ControllerYTCR.prototype.configConfirmSavePort = function(port) {
+ControllerYTCR.prototype.configConfirmSaveConnection = function(data) {
     let self = this;
-    self.config.set('port', port);
+    self.config.set('port', data['port']);
+    self.config.set('bindToIf', data['bindToIf']);
     self.restart().then( () => {
         self.refreshUIConfig();
         ytcr.toast('success', ytcr.getI18n('YTCR_RESTARTED'));
@@ -190,9 +213,11 @@ ControllerYTCR.prototype.onStart = function() {
         debug: ytcr.getConfigValue('debug', false)
     }
     MPDPlayer.instance(playerOptions).then(player => {
+        let bindToIf = ytcr.getConfigValue('bindToIf', '');
         self.player = player;
         self.receiver = receiver.instance(player, { 
             port: ytcr.getConfigValue('port', 8098),
+            bindToInterfaces: hasNetworkInterface(bindToIf) ? [bindToIf] : undefined,
             defaultAutoplay: ytcr.getConfigValue('defaultAutoplay', true),
             debug: self.debug
         });
@@ -475,6 +500,23 @@ function kewToJSPromise(promise) {
             reject(error);
         })
     });
+}
+
+function getNetworkInterfaces() {
+    let ifNames = ni.getInterfaces({
+        internal: false,
+        ipVersion: 4
+    });
+    return ifNames.map( v => {
+        return {
+            name: v,
+            ip: ni.toIp(v)
+        };
+    });
+}
+
+function hasNetworkInterface(ifName) {
+    return getNetworkInterfaces().find( info => info.name === ifName ) !== undefined;
 }
 
 class VolumeControl {

@@ -21,6 +21,7 @@
   "dependencies": {
     "kew": "^0.7.0",
     "mpd-api": "github:patrickkfkan/mpd-api#node8-compat",
+    "network-interfaces": "^1.1.0",
     "string-format": "^2.0.0",
     "v-conf": "^1.4.2",
     "ytdl-core": "^4.2.1",
