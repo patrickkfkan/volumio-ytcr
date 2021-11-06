@@ -33,6 +33,11 @@ To begin casting:
 
 # Changelog
 
+0.1.1
+- Check audio URLs and refetch on error response (retry up to 5 times)
+- Minor change to loading of translations
+- Update plugin for Volumio 3
+
 0.1.0-b
 - Version change to mark update of yt-cast-receiver module to version 0.1.1-b
 
