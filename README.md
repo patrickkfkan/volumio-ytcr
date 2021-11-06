@@ -4,6 +4,13 @@ A plugin that enables Volumio to act as a cast device for the YouTube mobile app
 
 >Not all browsers support casting from the YouTube website. The plugin has been tested to work with the Chrome and Edge desktop browsers.
 
+This repository has two branches:
+
+1. The `master` branch is targeted towards Volumio 3.
+2. The `volumio-2.x` branch is targeted towards Volumio 2.x.
+
+The focus is on the `master` branch. The `volumio-2.x` branch will only be maintained if it is practically feasible and still worthwhile to do so.
+
 ## Getting Started
 
 To install the plugin, first make sure you have [enabled SSH access](https://volumio.github.io/docs/User_Manual/SSH.html) on your Volumio device. Then, in a terminal:
@@ -11,10 +18,13 @@ To install the plugin, first make sure you have [enabled SSH access](https://vol
 ```
 $ ssh volumio@<your_Volumio_address>
 
+// You can copy and paste each line after the $ sign
+
 volumio:~$ mkdir ytcr-plugin
 volumio:~$ cd ytcr-plugin
 volumio:~/ytcr-plugin$ git clone https://github.com/patrickkfkan/volumio-ytcr.git
 volumio:~/ytcr-plugin$ cd volumio-ytcr
+volumio:~/ytcr-plugin/volumio-ytcr$ git checkout volumio-2.x
 volumio:~/ytcr-plugin/volumio-ytcr$ volumio plugin install
 
 ...
@@ -40,10 +50,13 @@ With the plugin enabled, you can now begin casting:
 When a new version of the plugin becomes available, you can ssh into your Volumio device and update as follows (assuming you have not deleted the directory which you cloned from this repo):
 
 ```
+// You can copy and paste each line after the $ sign
+
 volumio:~$ cd ~/ytcr-plugin
 volumio:~/ytcr-plugin$ rm -rf volumio-ytcr
 volumio:~/ytcr-plugin$ git clone https://github.com/patrickkfkan/volumio-ytcr.git
 volumio:~/ytcr-plugin$ cd volumio-ytcr
+volumio:~/ytcr-plugin/volumio-ytcr$ git checkout volumio-2.x
 volumio:~/ytcr-plugin/volumio-ytcr$ volumio plugin update
 
 This command will update the plugin on your device
