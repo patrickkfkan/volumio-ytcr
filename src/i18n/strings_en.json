@@ -9,6 +9,7 @@
   "YTCR_BIND_TO_IF": "Bind to Network Interface",
   "YTCR_BIND_TO_ALL_IF": "All",
   "YTCR_CONF_RESTART_CONFIRM": "Changing the connection settings will disconnect {}. Proceed?",
+  "YTCR_CONF_RESTART_CONFIRM_M": "Changing the connection settings will disconnect {} and {} others. Proceed?",
   "YTCR_YES": "Yes",
   "YTCR_NO": "No",
   "YTCR_OTHER_CONFIG": "Other Settings",
@@ -17,10 +18,11 @@
   "YTCR_DEBUG": "Verbose Logging",
   "YTCR_DEBUG_DESC": "Enable verbose logging for debugging purpose.",
   "YTCR_CONNECTED": "Connected to {}",
+  "YTCR_CONNECTED_MULTIPLE": "Connected to {} and {} others",
   "YTCR_DISCONNECTED": "Disconnected from {}",
   "YTCR_PLAY_STARTED": "Started playback of {}",
-  "YTCR_TRACK_LOAD_FAILED": "Failed to load {}: {}",
-  "YTCR_TRACK_UNPLAYABLE": "Could not play {}: {}",
+  "YTCR_START_PLAYBACK_FAILED": "Could not start playback of {}: {}",
+  "YTCR_STREAM_NOT_FOUND": "Stream not found",
   "YTCR_INVALID_PORT": "Port number must be between 1024 and 65353",
   "YTCR_RESTARTED": "Restarted"
 }
