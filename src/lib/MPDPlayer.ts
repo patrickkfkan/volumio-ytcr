@@ -1,11 +1,11 @@
-import { Constants, Player, PlayerState, PLAYER_STATUSES, Video } from 'yt-cast-receiver';
+import { Constants, Player, PlayerState, Video } from 'yt-cast-receiver';
 import mpdApi, { MPDApi } from 'mpd-api';
 import { MPD } from 'mpd2';
+import AbortController from 'abort-controller';
 import MPDSubsystemEventEmitter, { SubsystemEvent, SubsystemName } from './MPDSubsystemEventEmitter.js';
 import VolumeControl from './VolumeControl.js';
 import VideoLoader, { VideoInfo } from './VideoLoader.js';
 import ytcr from './YTCRContext.js';
-import AbortController from 'abort-controller';
 
 export interface MPDPlayerError {
   message: string;
@@ -204,7 +204,7 @@ export default class MPDPlayer extends Player {
       return true;
     }
 
-    if (this.status === PLAYER_STATUSES.LOADING) {
+    if (this.status === Constants.PLAYER_STATUSES.LOADING) {
       this.#abortLoadVideo();
       return true;
     }

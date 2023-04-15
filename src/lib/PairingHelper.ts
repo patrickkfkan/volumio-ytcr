@@ -1,5 +1,5 @@
-import YouTubeCastReceiver, { Constants, Logger } from "yt-cast-receiver";
-import ytcr from "./YTCRContext";
+import YouTubeCastReceiver, { Constants, Logger } from 'yt-cast-receiver';
+import ytcr from './YTCRContext.js';
 
 export default class PairingHelper {
 

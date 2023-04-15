@@ -3,8 +3,8 @@ import { VideoInfo as InnertubeVideoInfo } from 'volumio-youtubei.js/dist/src/pa
 import Format from 'volumio-youtubei.js/dist/src/parser/classes/misc/Format.js';
 import { Logger, Video } from 'yt-cast-receiver';
 import { AbortSignal } from 'abort-controller';
-import ytcr from './YTCRContext.js';
 import fetch from 'node-fetch';
+import ytcr from './YTCRContext.js';
 
 // https://gist.github.com/sidneys/7095afe4da4ae58694d128b1034e01e2
 const ITAG_TO_BITRATE = {

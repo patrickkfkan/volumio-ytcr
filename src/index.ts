@@ -1,6 +1,4 @@
-'use strict';
-
-import YouTubeCastReceiver, { LOG_LEVELS, PairingCodeRequestService, PlayerState, PLAYER_STATUSES, Sender, STATUSES } from 'yt-cast-receiver';
+import YouTubeCastReceiver, { Constants, PlayerState, Sender } from 'yt-cast-receiver';
 // eslint-disable-next-line @typescript-eslint/ban-ts-comment
 // @ts-ignore
 import libQ from 'kew';
@@ -67,10 +65,10 @@ class ControllerYTCR {
 
     libQ.all(configPrepTasks)
       .then((configParams: [any, string]) => {
-        const [uiconf, pairingCode] = configParams;
-        const [connectionUIConf,
+        const [ uiconf, pairingCode ] = configParams;
+        const [ connectionUIConf,
           manualPairingUIConf,
-          otherUIConf] = uiconf.sections;
+          otherUIConf ] = uiconf.sections;
 
         const port = ytcr.getConfigValue('port', 8098);
         const enableAutoplayOnConnect = ytcr.getConfigValue('enableAutoplayOnConnect', true);
@@ -80,10 +78,10 @@ class ControllerYTCR {
         const liveStreamQualityOptions = otherUIConf.content[0].options;
 
         const availableIf = utils.getNetworkInterfaces();
-        const ifOpts = [{
+        const ifOpts = [ {
           value: '',
           label: ytcr.getI18n('YTCR_BIND_TO_ALL_IF')
-        }];
+        } ];
         connectionUIConf.content[1].value = ifOpts[0];
         availableIf.forEach((info) => {
           const opt = {
@@ -153,13 +151,13 @@ class ControllerYTCR {
     const receiver = this.#receiver = new YouTubeCastReceiver(this.#player, {
       dial: {
         port: ytcr.getConfigValue('port', 8098),
-        bindToInterfaces: utils.hasNetworkInterface(bindToIf) ? [bindToIf] : undefined
+        bindToInterfaces: utils.hasNetworkInterface(bindToIf) ? [ bindToIf ] : undefined
       },
       app: {
         enableAutoplayOnConnect: ytcr.getConfigValue('enableAutoplayOnConnect', true)
       },
       logger: this.#logger,
-      logLevel: ytcr.getConfigValue('debug', false) ? LOG_LEVELS.DEBUG : LOG_LEVELS.INFO
+      logLevel: ytcr.getConfigValue('debug', false) ? Constants.LOG_LEVELS.DEBUG : Constants.LOG_LEVELS.INFO
     });
 
     receiver.on('senderConnect', (sender: Sender) => {
@@ -197,10 +195,10 @@ class ControllerYTCR {
         // Update volume on sender apps
         await this.#player.notifyExternalStateChange();
       }
-      /*Else if (action.name === 'setVolume' && !this.isCurrentService()) {
+      else if (action.name === 'setVolume' && !this.isCurrentService()) {
         this.#logger.debug('[ytcr] setVolume command received, but we are not the current service. Putting player to sleep...');
         this.#player.sleep();
-      }*/
+      }
     });
 
     // Listen for changes in volume on Volumio's end
@@ -225,7 +223,7 @@ class ControllerYTCR {
       if (this.isCurrentService() && this.#hasConnectedSenders()) {
         const state = states.current;
         this.#logger.debug('[ytcr] Received state change event from MPDPlayer:', state);
-        if (state.status === PLAYER_STATUSES.STOPPED || state.status === PLAYER_STATUSES.IDLE) {
+        if (state.status === Constants.PLAYER_STATUSES.STOPPED || state.status === Constants.PLAYER_STATUSES.IDLE) {
           this.#player.sleep();
           this.pushIdleState();
         }
@@ -246,7 +244,7 @@ class ControllerYTCR {
     })
       .catch((error: any) => {
         this.#logger.error('[ytcr] Failed to start plugin:', error);
-        if (receiver.status === STATUSES.RUNNING) {
+        if (receiver.status === Constants.STATUSES.RUNNING) {
           receiver.stop();
         }
         defer.reject(error);
@@ -330,7 +328,7 @@ class ControllerYTCR {
     this.#config.set('debug', data['debug']);
 
     if (this.#receiver) {
-      this.#receiver.setLogLevel(data['debug'] ? LOG_LEVELS.DEBUG : LOG_LEVELS.INFO);
+      this.#receiver.setLogLevel(data['debug'] ? Constants.LOG_LEVELS.DEBUG : Constants.LOG_LEVELS.INFO);
       this.#receiver.enableAutoplayOnConnect(data['enableAutoplayOnConnect']);
     }
 
@@ -370,7 +368,7 @@ class ControllerYTCR {
   }
 
   getConfigurationFiles(): string[] {
-    return ['config.json'];
+    return [ 'config.json' ];
   }
 
   setVolatile() {
