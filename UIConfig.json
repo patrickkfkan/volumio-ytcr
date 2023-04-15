@@ -42,6 +42,31 @@
         }
       ]
     },
+    {
+      "id": "section_manual_pairing",
+      "element": "section",
+      "label": "TRANSLATE.YTCR_MANUAL_PAIRING",
+      "description": "TRANSLATE.YTCR_MANUAL_PAIRING_DESC",
+      "icon": "fa-plug",
+      "onSave": {
+        "type": "controller",
+        "endpoint": "music_service/ytcr",
+        "method": "refreshUIConfig"
+      },
+      "saveButton": {
+        "label": "TRANSLATE.YTCR_REFRESH",
+        "data": []
+      },
+      "content": [
+        {
+          "id": "tvCode",
+          "type": "text",
+          "element": "input",
+          "label": "TRANSLATE.YTCR_TV_CODE",
+          "value": ""
+        }
+      ]
+    },
 		{
       "id": "section_other",
       "element": "section",

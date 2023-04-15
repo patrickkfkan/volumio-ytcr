@@ -1,6 +1,6 @@
 'use strict';
 
-import YouTubeCastReceiver, { LOG_LEVELS, PlayerState, PLAYER_STATUSES, Sender, STATUSES } from 'yt-cast-receiver';
+import YouTubeCastReceiver, { LOG_LEVELS, PairingCodeRequestService, PlayerState, PLAYER_STATUSES, Sender, STATUSES } from 'yt-cast-receiver';
 // eslint-disable-next-line @typescript-eslint/ban-ts-comment
 // @ts-ignore
 import libQ from 'kew';
@@ -13,6 +13,7 @@ import MPDPlayer, { ActionEvent, MPDPlayerError, VolumioState } from './lib/MPDP
 import VolumeControl from './lib/VolumeControl.js';
 import * as utils from './lib/Utils.js';
 import VideoLoader from './lib/VideoLoader.js';
+import PairingHelper from './lib/PairingHelper.js';
 
 const IDLE_STATE = {
   status: 'stop',
@@ -56,12 +57,20 @@ class ControllerYTCR {
 
     const lang_code = this.#commandRouter.sharedVars.get('language_code');
 
-    this.#commandRouter.i18nJson(`${__dirname}/i18n/strings_${lang_code}.json`,
-      `${__dirname}/i18n/strings_en.json`,
-      `${__dirname}/UIConfig.json`)
-      .then((uiconf: any) => {
-        const connectionUIConf = uiconf.sections[0];
-        const otherUIConf = uiconf.sections[1];
+    const configPrepTasks = [
+      this.#commandRouter.i18nJson(`${__dirname}/i18n/strings_${lang_code}.json`,
+        `${__dirname}/i18n/strings_en.json`,
+        `${__dirname}/UIConfig.json`),
+
+      utils.jsPromiseToKew(PairingHelper.getManualPairingCode(this.#receiver, this.#logger))
+    ];
+
+    libQ.all(configPrepTasks)
+      .then((configParams: [any, string]) => {
+        const [uiconf, pairingCode] = configParams;
+        const [connectionUIConf,
+          manualPairingUIConf,
+          otherUIConf] = uiconf.sections;
 
         const port = ytcr.getConfigValue('port', 8098);
         const enableAutoplayOnConnect = ytcr.getConfigValue('enableAutoplayOnConnect', true);
@@ -69,10 +78,10 @@ class ControllerYTCR {
         const bindToIf = ytcr.getConfigValue('bindToIf', '');
 
         const availableIf = utils.getNetworkInterfaces();
-        const ifOpts = [ {
+        const ifOpts = [{
           value: '',
           label: ytcr.getI18n('YTCR_BIND_TO_ALL_IF')
-        } ];
+        }];
         connectionUIConf.content[1].value = ifOpts[0];
         availableIf.forEach((info) => {
           const opt = {
@@ -87,6 +96,7 @@ class ControllerYTCR {
 
         connectionUIConf.content[0].value = port;
         connectionUIConf.content[1].options = ifOpts;
+        manualPairingUIConf.content[0].value = pairingCode || 'Error (check logs)';
         otherUIConf.content[0].value = enableAutoplayOnConnect;
         otherUIConf.content[1].value = debug;
 
@@ -140,7 +150,7 @@ class ControllerYTCR {
     const receiver = this.#receiver = new YouTubeCastReceiver(this.#player, {
       dial: {
         port: ytcr.getConfigValue('port', 8098),
-        bindToInterfaces: utils.hasNetworkInterface(bindToIf) ? [ bindToIf ] : undefined
+        bindToInterfaces: utils.hasNetworkInterface(bindToIf) ? [bindToIf] : undefined
       },
       app: {
         enableAutoplayOnConnect: ytcr.getConfigValue('enableAutoplayOnConnect', true)
@@ -356,7 +366,7 @@ class ControllerYTCR {
   }
 
   getConfigurationFiles(): string[] {
-    return [ 'config.json' ];
+    return ['config.json'];
   }
 
   setVolatile() {
