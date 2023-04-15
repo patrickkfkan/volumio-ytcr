@@ -76,6 +76,8 @@ class ControllerYTCR {
         const enableAutoplayOnConnect = ytcr.getConfigValue('enableAutoplayOnConnect', true);
         const debug = ytcr.getConfigValue('debug', false);
         const bindToIf = ytcr.getConfigValue('bindToIf', '');
+        const liveStreamQuality = ytcr.getConfigValue('liveStreamQuality', 'auto');
+        const liveStreamQualityOptions = otherUIConf.content[0].options;
 
         const availableIf = utils.getNetworkInterfaces();
         const ifOpts = [{
@@ -97,8 +99,9 @@ class ControllerYTCR {
         connectionUIConf.content[0].value = port;
         connectionUIConf.content[1].options = ifOpts;
         manualPairingUIConf.content[0].value = pairingCode || 'Error (check logs)';
-        otherUIConf.content[0].value = enableAutoplayOnConnect;
-        otherUIConf.content[1].value = debug;
+        otherUIConf.content[0].value = liveStreamQualityOptions.find((o: any) => o.value === liveStreamQuality);
+        otherUIConf.content[1].value = enableAutoplayOnConnect;
+        otherUIConf.content[2].value = debug;
 
         let connectionStatus;
         if (this.#hasConnectedSenders()) {
@@ -322,6 +325,7 @@ class ControllerYTCR {
   }
 
   configSaveOther(data: any) {
+    this.#config.set('liveStreamQuality', data['liveStreamQuality'].value);
     this.#config.set('enableAutoplayOnConnect', data['enableAutoplayOnConnect']);
     this.#config.set('debug', data['debug']);
 
