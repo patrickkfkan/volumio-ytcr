@@ -136,7 +136,6 @@ export default class VideoLoader {
         streamInfo = this.#chooseFormat(info);
       }
       else if (info.streaming_data?.hls_manifest_url) {
-        // TODO: Add liveStreamQuality setting
         const targetQuality = ytcr.getConfigValue('liveStreamQuality', 'auto');
         streamInfo = {
           url: await this.#getStreamUrlFromHLS(info.streaming_data.hls_manifest_url, targetQuality)
