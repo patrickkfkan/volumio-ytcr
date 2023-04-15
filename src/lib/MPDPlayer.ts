@@ -457,6 +457,10 @@ export default class MPDPlayer extends Player {
         state.channels = this.#currentVideoInfo.channels;
       }
       state.isStreaming = this.#currentVideoInfo.isLive;
+      if (this.#currentVideoInfo.isLive) {
+        state.duration = 0;
+        state.seek = 0;
+      }
     }
 
     return state;
