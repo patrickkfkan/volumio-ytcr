@@ -12,7 +12,7 @@ import Logger from './lib/Logger.js';
 import MPDPlayer, { ActionEvent, MPDPlayerError, VolumioState } from './lib/MPDPlayer.js';
 import VolumeControl from './lib/VolumeControl.js';
 import * as utils from './lib/Utils.js';
-import VideoModel from './lib/VideoModel.js';
+import VideoLoader from './lib/VideoLoader.js';
 
 const IDLE_STATE = {
   status: 'stop',
@@ -128,12 +128,11 @@ class ControllerYTCR {
     ytcr.init(this.#context, this.#config);
 
     this.#volumeControl = new VolumeControl(this.#commandRouter, this.#logger);
-    const videoModel = new VideoModel(this.#logger);
 
     const playerConfig = {
       mpd: this.#getMpdConfig(),
       volumeControl: this.#volumeControl,
-      videoModel
+      videoLoader: new VideoLoader(this.#logger)
     };
     this.#player = new MPDPlayer(playerConfig);
 
@@ -144,8 +143,7 @@ class ControllerYTCR {
         bindToInterfaces: utils.hasNetworkInterface(bindToIf) ? [ bindToIf ] : undefined
       },
       app: {
-        enableAutoplayOnConnect: ytcr.getConfigValue('enableAutoplayOnConnect', true),
-        autoplayLoader: videoModel
+        enableAutoplayOnConnect: ytcr.getConfigValue('enableAutoplayOnConnect', true)
       },
       logger: this.#logger,
       logLevel: ytcr.getConfigValue('debug', false) ? LOG_LEVELS.DEBUG : LOG_LEVELS.INFO
@@ -229,7 +227,6 @@ class ControllerYTCR {
     });
 
     receiver.start().then(async () => {
-      await videoModel.init();
       this.#player.init();
       this.#logger.debug('[ytcr] Receiver started.');
       defer.resolve();

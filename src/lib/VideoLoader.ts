@@ -1,12 +1,9 @@
-import { AutoplayLoader, Logger, Player } from 'yt-cast-receiver';
-import InnerTube, * as InnerTubeLib from 'volumio-youtubei.js';
-import { VideoInfo as InnerTubeVideoInfo } from 'volumio-youtubei.js/dist/src/parser/youtube/index.js';
+import Innertube, * as InnertubeLib from 'volumio-youtubei.js';
+import { VideoInfo as InnertubeVideoInfo } from 'volumio-youtubei.js/dist/src/parser/youtube/index.js';
 import Format from 'volumio-youtubei.js/dist/src/parser/classes/misc/Format.js';
-import fetch from 'node-fetch';
-import ytcr from './YTCRContext.js';
+import { Logger, Video } from 'yt-cast-receiver';
 import { AbortSignal } from 'abort-controller';
-
-type InnerTubeEndpoint = InnerTubeLib.YTNodes.NavigationEndpoint;
+import ytcr from './YTCRContext.js';
 
 // https://gist.github.com/sidneys/7095afe4da4ae58694d128b1034e01e2
 const ITAG_TO_BITRATE = {
@@ -23,7 +20,7 @@ const BEST_AUDIO_FORMAT = {
   type: 'audio',
   format: 'any',
   quality: 'best'
-} as InnerTubeLib.FormatOptions;
+} as InnertubeLib.FormatOptions;
 
 export interface VideoInfo {
   id: string,
@@ -46,104 +43,73 @@ interface StreamInfo {
   channels?: number
 }
 
-export default class VideoModel implements AutoplayLoader {
+export default class VideoLoader {
 
-  #innerTube: Record<string, InnerTube> | null;
+  #innertube: Innertube | null;
   #logger: Logger;
 
   constructor(logger: Logger) {
-    this.#innerTube = null;
+    this.#innertube = null;
     this.#logger = logger;
   }
 
-  async init() {
-    if (!this.#innerTube) {
-      const instances = await Promise.all([ InnerTube.create(), InnerTube.create() ]);
-      this.#innerTube = {
-        'info': instances[0],
-        'autoplay': instances[1]
-      };
-
-      this.#innerTube.autoplay.session.context.client.clientName = 'TVHTML5';
-      this.#innerTube.autoplay.session.context.client.clientVersion = '7.20230405.08.01';
-      this.#innerTube.autoplay.session.context.client.userAgent = 'Mozilla/5.0 (Windows NT 10.0; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/75.0.3770.142 Safari/537.36; SMART-TV; Tizen 4.0,gzip(gfe)';
-    }
-    // TODO: apply i18n to innertube
-  }
-
-  #createInnerTubeEndpoint(ctx: 'info' | 'autoplay', videoId: string, player: Player): InnerTubeEndpoint {
-    if (!this.#innerTube) {
-      throw Error('[ytcr] VideoModel not initialized.');
-    }
-
-    const endpoint = new InnerTubeLib.YTNodes.NavigationEndpoint({});
-    endpoint.payload = {
-      videoId
-    };
-    if (player.playlist.id) {
-      endpoint.payload.playlistId = player.playlist.id;
-    }
-    /*If (player.playlist.params) {
-      endpoint.payload.params = player.playlist.params;
-    }*/
-    const vIndex = player.playlist.videoIds.findIndex((id) => id === videoId);
-    if (vIndex >= 0) {
-      if (ctx === 'info') {
-        endpoint.payload.index = vIndex;
-      }
-      else {
-        endpoint.payload.playlistIndex = vIndex;
-      }
-    }
-    if (ctx === 'autoplay') {
-      endpoint.payload.enableMdxAutoplay = true;
-      endpoint.payload.isMdxPlayback = true;
-    }
-
-    return endpoint;
-  }
-
-  #configureInnerTubeContext(ctx: 'info' | 'autoplay', config: Record<string, any> = {}) {
-    if (!this.#innerTube) {
-      throw Error('[ytcr] VideoModel not initialized.');
-    }
-
-    if (config.ctt) {
-      this.#innerTube[ctx].session.context.user = {
-        enableSafetyMode: false,
-        lockedSafetyMode: false,
-        credentialTransferTokens: [
-          {
-            'scope': 'VIDEO',
-            'token': config.ctt
-          }
-        ]
-      } as any;
-    }
-    else {
-      delete (this.#innerTube[ctx].session.context.user as any)?.credentialTransferTokens;
+  async #init() {
+    if (!this.#innertube) {
+      this.#innertube = await Innertube.create();
     }
   }
 
-  async getInfo(videoId: string, player: Player, abortSignal: AbortSignal): Promise<VideoInfo> {
-    if (!this.#innerTube) {
-      throw Error('[ytcr] VideoModel not initialized.');
+  async getInfo(video: Video, abortSignal: AbortSignal): Promise<VideoInfo> {
+    if (!this.#innertube) {
+      await this.#init();
+    }
+    if (!this.#innertube) {
+      throw Error('VideoLoader not initialized');
     }
 
-    this.#logger.debug(`[ytcr] VideoModel.getInfo: ${videoId}`);
+    this.#logger.debug(`[ytcr] VideoModel.getInfo: ${video.id}`);
 
     if (abortSignal) {
       abortSignal.onabort = () => {
-        const abortError = Error(`VideoModel.getInfo() aborted for video Id: ${videoId}`);
+        const abortError = Error(`VideoModel.getInfo() aborted for video Id: ${video.id}`);
         abortError.name = 'AbortError';
         throw abortError;
       };
     }
 
+    // Prepare endpoint for innertube.getInfo()
+    const endpoint = new InnertubeLib.YTNodes.NavigationEndpoint({});
+    endpoint.payload = {
+      videoId: video.id
+    };
+    if (video.context?.playlistId) {
+      endpoint.payload.playlistId = video.context.playlistId;
+    }
+    if (video.context?.params) {
+      endpoint.payload.params = video.context.params;
+    }
+    if (video.context?.index !== undefined) {
+      endpoint.payload.index = video.context.index;
+    }
+    // Modify innertube's session context to include `ctt` param
+    if (video.context?.ctt) {
+      this.#innertube.session.context.user = {
+        enableSafetyMode: false,
+        lockedSafetyMode: false,
+        credentialTransferTokens: [
+          {
+            'scope': 'VIDEO',
+            'token': video.context?.ctt
+          }
+        ]
+      } as any;
+    }
+    else {
+      delete (this.#innertube.session.context.user as any)?.credentialTransferTokens;
+    }
+
     try {
-      const endpoint = this.#createInnerTubeEndpoint('info', videoId, player);
-      this.#configureInnerTubeContext('info', { ctt: player.playlist.ctt });
-      const info = await this.#innerTube.info.getInfo(endpoint);
+      const info = await this.#innertube.getInfo(endpoint);
 
       const basicInfo = info.basic_info;
       const title = basicInfo.title;
@@ -183,7 +149,7 @@ export default class VideoModel implements AutoplayLoader {
       }
 
       return {
-        id: videoId,
+        id: video.id,
         errMsg: errMsg || undefined,
         title,
         channel,
@@ -197,9 +163,9 @@ export default class VideoModel implements AutoplayLoader {
 
     }
     catch (error) {
-      this.#logger.error(`[ytcr] Error in VideoModel.getInfo(${videoId}):`, error);
+      this.#logger.error(`[ytcr] Error in VideoModel.getInfo(${video.id}):`, error);
       return {
-        id: videoId,
+        id: video.id,
         errMsg: error instanceof Error ? error.message : '(Check logs for errors)'
       };
     }
@@ -213,12 +179,12 @@ export default class VideoModel implements AutoplayLoader {
     return url;
   }
 
-  #chooseFormat(videoInfo: InnerTubeVideoInfo) {
-    if (!this.#innerTube) {
+  #chooseFormat(videoInfo: InnertubeVideoInfo) {
+    if (!this.#innertube) {
       throw Error('VideoModel not initialized');
     }
     const format = videoInfo?.chooseFormat(BEST_AUDIO_FORMAT);
-    const streamUrl = format ? format.decipher(this.#innerTube.info.session.player) : null;
+    const streamUrl = format ? format.decipher(this.#innertube.session.player) : null;
     const streamData = format ? { ...format, url: streamUrl } as Format : null;
     if (streamData) {
       return this.#parseStreamData(streamData);
@@ -280,31 +246,5 @@ export default class VideoModel implements AutoplayLoader {
     const closest = diffs.filter((v) => v.qualityDelta >= 0).sort((v1, v2) => v1.qualityDelta - v2.qualityDelta)[0];
 
     return closest?.variant.url || playlistVariants[0]?.url || null;
-  }
-
-  // Implements
-  async getAutoplayVideoId(videoId: string, player: Player, logger: Logger): Promise<string | null> {
-    if (!this.#innerTube) {
-      throw Error('VideoModel not initialized');
-    }
-    this.#logger.debug(`[ytcr] VideoModel.getAutoplayVideoId: ${videoId}`);
-
-    try {
-      const endpoint = this.#createInnerTubeEndpoint('autoplay', videoId, player);
-      this.#configureInnerTubeContext('autoplay', { ctt: player.playlist.ctt });
-      const nextResponse = await this.#innerTube.autoplay.actions.execute('/next', endpoint.payload) as any;
-
-      const autoplayEndpoint = new InnerTubeLib.YTNodes.NavigationEndpoint(
-        nextResponse.data?.contents?.singleColumnWatchNextResults?.autoplay?.autoplay
-          ?.sets?.[0]?.autoplayVideoRenderer?.mdxAutoplayVideoRenderer?.navigationEndpoint);
-
-      logger.debug(`[ytcr] Autoplay endpoint for video Id: ${videoId}`, autoplayEndpoint);
-
-      return autoplayEndpoint.payload?.videoId || null;
-    }
-    catch (error) {
-      logger.error(`[ytcr] Failed to get autoplay video for video Id: ${videoId}`, error);
-      return null;
-    }
   }
 }

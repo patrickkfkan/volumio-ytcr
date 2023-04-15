@@ -1,9 +1,9 @@
-import { Constants, Player, PlayerState, PLAYER_STATUSES } from 'yt-cast-receiver';
+import { Constants, Player, PlayerState, PLAYER_STATUSES, Video } from 'yt-cast-receiver';
 import mpdApi, { MPDApi } from 'mpd-api';
 import { MPD } from 'mpd2';
 import MPDSubsystemEventEmitter, { SubsystemEvent, SubsystemName } from './MPDSubsystemEventEmitter.js';
 import VolumeControl from './VolumeControl.js';
-import VideoModel, { VideoInfo } from './VideoModel.js';
+import VideoLoader, { VideoInfo } from './VideoLoader.js';
 import ytcr from './YTCRContext.js';
 import AbortController from 'abort-controller';
 
@@ -19,7 +19,7 @@ export interface ActionEvent {
 export interface MPDPlayerConfig {
   mpd: MPD.Config;
   volumeControl: VolumeControl;
-  videoModel: VideoModel;
+  videoLoader: VideoLoader;
 }
 
 interface CurrentVideoInfo extends VideoInfo {
@@ -51,7 +51,7 @@ export default class MPDPlayer extends Player {
   #currentVideoInfo: CurrentVideoInfo | null;
   #mpdClient: MPDApi.ClientAPI | null;
   #volumeControl: VolumeControl;
-  #videoModel: VideoModel;
+  #videoLoader: VideoLoader;
   #loadVideoAbortController: AbortController | null;
 
   #subsystemEventEmitter: MPDSubsystemEventEmitter | null;
@@ -69,7 +69,7 @@ export default class MPDPlayer extends Player {
     this.#mpdClient = await mpdApi.connect(this.#config.mpd);
 
     this.#destroyed = false;
-    this.#videoModel = this.#config.videoModel;
+    this.#videoLoader = this.#config.videoLoader;
     this.#volumeControl = this.#config.volumeControl;
 
     const externalMPDEventListener = this.#handleExternalMPDEvent.bind(this);
@@ -86,19 +86,19 @@ export default class MPDPlayer extends Player {
     }
   }
 
-  protected async doPlay(videoId: string, position: number): Promise<boolean> {
+  protected async doPlay(video: Video, position: number): Promise<boolean> {
     if (this.#destroyed || !this.#mpdClient) {
       return false;
     }
 
-    this.emit('action', { name: 'play', data: { videoId, position } });
-    this.logger.debug(`[ytcr] MPDPlayer: play ${videoId} at position ${position}s`);
+    this.emit('action', { name: 'play', data: { videoId: video.id, position } });
+    this.logger.debug(`[ytcr] MPDPlayer: play ${video.id} at position ${position}s`);
 
     this.#abortLoadVideo();
     this.#loadVideoAbortController = new AbortController();
     let videoInfo;
     try {
-      videoInfo = await this.#videoModel.getInfo(videoId, this, this.#loadVideoAbortController.signal) as CurrentVideoInfo;
+      videoInfo = await this.#videoLoader.getInfo(video, this.#loadVideoAbortController.signal) as CurrentVideoInfo;
     }
     catch (error: any) {
       if (error.name === 'AbortError') {
@@ -110,7 +110,7 @@ export default class MPDPlayer extends Player {
     finally {
       this.#loadVideoAbortController = null;
     }
-    this.logger.debug(`[ytcr] MPDPLayer obtained info for ${videoId}:`, videoInfo);
+    this.logger.debug(`[ytcr] MPDPLayer obtained info for ${video.id}:`, videoInfo);
 
     await this.#mpdClient.api.queue.clear();
 
@@ -155,7 +155,7 @@ export default class MPDPlayer extends Player {
                 .then(playerState => this.eventEmitter.emit('stateChanged', playerState, { triggeredBy: 'play' }))*/
     }
 
-    this.logger.debug(`[ytcr] MPDPlayer failed to play ${videoId}: ${videoInfo.errMsg}`);
+    this.logger.debug(`[ytcr] MPDPlayer failed to play ${video.id}: ${videoInfo.errMsg}`);
     this.emit('error', {
       message: ytcr.getI18n('YTCR_START_PLAYBACK_FAILED', videoInfo.title || videoInfo.id, videoInfo.errMsg)
     } as MPDPlayerError);
