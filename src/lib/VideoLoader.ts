@@ -4,6 +4,7 @@ import Format from 'volumio-youtubei.js/dist/src/parser/classes/misc/Format.js';
 import { Logger, Video } from 'yt-cast-receiver';
 import { AbortSignal } from 'abort-controller';
 import ytcr from './YTCRContext.js';
+import fetch from 'node-fetch';
 
 // https://gist.github.com/sidneys/7095afe4da4ae58694d128b1034e01e2
 const ITAG_TO_BITRATE = {
@@ -67,11 +68,11 @@ export default class VideoLoader {
       throw Error('VideoLoader not initialized');
     }
 
-    this.#logger.debug(`[ytcr] VideoModel.getInfo: ${video.id}`);
+    this.#logger.debug(`[ytcr] VideoLoader.getInfo: ${video.id}`);
 
     if (abortSignal) {
       abortSignal.onabort = () => {
-        const abortError = Error(`VideoModel.getInfo() aborted for video Id: ${video.id}`);
+        const abortError = Error(`VideoLoader.getInfo() aborted for video Id: ${video.id}`);
         abortError.name = 'AbortError';
         throw abortError;
       };
@@ -163,7 +164,7 @@ export default class VideoLoader {
 
     }
     catch (error) {
-      this.#logger.error(`[ytcr] Error in VideoModel.getInfo(${video.id}):`, error);
+      this.#logger.error(`[ytcr] Error in VideoLoader.getInfo(${video.id}):`, error);
       return {
         id: video.id,
         errMsg: error instanceof Error ? error.message : '(Check logs for errors)'
@@ -181,7 +182,7 @@ export default class VideoLoader {
 
   #chooseFormat(videoInfo: InnertubeVideoInfo) {
     if (!this.#innertube) {
-      throw Error('VideoModel not initialized');
+      throw Error('VideoLoader not initialized');
     }
     const format = videoInfo?.chooseFormat(BEST_AUDIO_FORMAT);
     const streamUrl = format ? format.decipher(this.#innertube.session.player) : null;
