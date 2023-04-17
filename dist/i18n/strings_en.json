@@ -4,6 +4,7 @@
   "YTCR_SETTINGS_SAVED": "Settings saved",
   "YTCR_CONNECTION": "Connection - {}",
   "YTCR_IDLE": "Idle",
+  "YTCR_IDLE_NOT_RUNNING": "Idle (Receiver is not running)",
   "YTCR_PORT": "Listening Port",
   "YTCR_PORT_DESC": "Changing this value will disconnect the current client. Default: 8098",
   "YTCR_BIND_TO_IF": "Bind to Network Interface",
@@ -17,6 +18,8 @@
   "YTCR_TV_CODE": "TV Code",
   "YTCR_FETCHING_TV_CODE": "Obtaining TV code, please wait...",
   "YTCR_FETCH_TV_CODE_ERR": "Failed to obtain TV code: {}",
+  "YTCR_NO_CODE_ERR": "(No code: check logs for errors)",
+  "YTCR_NO_CODE_NOT_RUNNING": "(No code: receiver not running)",
   "YTCR_REFRESH": "Refresh",
   "YTCR_OTHER_CONFIG": "Other Settings",
   "YTCR_LIVE_STREAM_QUALITY": "Live Stream Quality",
@@ -32,5 +35,6 @@
   "YTCR_START_PLAYBACK_FAILED": "Could not start playback of {}: {}",
   "YTCR_STREAM_NOT_FOUND": "Stream not found",
   "YTCR_INVALID_PORT": "Port number must be between 1024 and 65353",
-  "YTCR_RESTARTED": "Restarted"
+  "YTCR_RESTARTED": "Restarted",
+  "YTCR_RECEIVER_START_ERR": "Receiver failed to start: {}"
 }

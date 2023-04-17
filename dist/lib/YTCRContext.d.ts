@@ -1,8 +1,8 @@
-type DeviceInfo = {
+interface DeviceInfo {
     name: string;
     uuid: string;
     time: string;
-};
+}
 declare class YTCRContext {
     #private;
     constructor();

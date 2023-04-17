@@ -82,6 +82,7 @@ class ControllerYTCR {
             .then((configParams) => {
             const [uiconf, pairingCode] = configParams;
             const [connectionUIConf, manualPairingUIConf, otherUIConf] = uiconf.sections;
+            const receiverRunning = this.#receiver.status === yt_cast_receiver_1.Constants.STATUSES.RUNNING;
             const port = YTCRContext_js_1.default.getConfigValue('port', 8098);
             const enableAutoplayOnConnect = YTCRContext_js_1.default.getConfigValue('enableAutoplayOnConnect', true);
             const debug = YTCRContext_js_1.default.getConfigValue('debug', false);
@@ -106,12 +107,20 @@ class ControllerYTCR {
             });
             connectionUIConf.content[0].value = port;
             connectionUIConf.content[1].options = ifOpts;
-            manualPairingUIConf.content[0].value = pairingCode || 'Error (check logs)';
+            if (!receiverRunning) {
+                manualPairingUIConf.content[0].value = YTCRContext_js_1.default.getI18n('YTCR_NO_CODE_NOT_RUNNING');
+            }
+            else {
+                manualPairingUIConf.content[0].value = pairingCode || YTCRContext_js_1.default.getI18n('YTCR_NO_CODE_ERR');
+            }
             otherUIConf.content[0].value = liveStreamQualityOptions.find((o) => o.value === liveStreamQuality);
             otherUIConf.content[1].value = enableAutoplayOnConnect;
             otherUIConf.content[2].value = debug;
             let connectionStatus;
-            if (this.#hasConnectedSenders()) {
+            if (!receiverRunning) {
+                connectionStatus = YTCRContext_js_1.default.getI18n('YTCR_IDLE_NOT_RUNNING');
+            }
+            else if (this.#hasConnectedSenders()) {
                 const senders = this.#receiver.getConnectedSenders();
                 if (senders.length > 1) {
                     connectionStatus = YTCRContext_js_1.default.getI18n('YTCR_CONNECTED_MULTIPLE', senders[0].name, senders.length - 1);
@@ -241,7 +250,11 @@ class ControllerYTCR {
             if (receiver.status === yt_cast_receiver_1.Constants.STATUSES.RUNNING) {
                 receiver.stop();
             }
-            defer.reject(error);
+            else {
+                YTCRContext_js_1.default.toast('error', YTCRContext_js_1.default.getI18n('YTCR_RECEIVER_START_ERR', error.message || error));
+            }
+            // Still resolve, in case error is caused by wrong setting (e.g. conflicting port).
+            defer.resolve();
         });
         return defer.promise;
     }
@@ -343,7 +356,7 @@ class ControllerYTCR {
     }
     restart() {
         return this.onStop().then(() => {
-            this.onStart();
+            return this.onStart();
         });
     }
     getConfigurationFiles() {

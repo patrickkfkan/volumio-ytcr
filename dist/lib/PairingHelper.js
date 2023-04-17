@@ -7,6 +7,9 @@ const yt_cast_receiver_1 = require("yt-cast-receiver");
 const YTCRContext_js_1 = __importDefault(require("./YTCRContext.js"));
 class PairingHelper {
     static getManualPairingCode(receiver, logger) {
+        if (receiver.status !== yt_cast_receiver_1.Constants.STATUSES.RUNNING) {
+            return Promise.resolve(null);
+        }
         let timeout = null;
         const service = receiver.getPairingCodeRequestService();
         const stopService = () => {
