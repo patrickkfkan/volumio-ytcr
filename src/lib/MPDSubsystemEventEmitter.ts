@@ -22,7 +22,7 @@ interface SubsystemEventListener {
 
 interface __SubsystemEventListener {
   once: boolean;
-  callback: SubsystemEventListener
+  callback: SubsystemEventListener;
 }
 
 export class SubsystemEvent {

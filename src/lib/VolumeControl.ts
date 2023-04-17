@@ -1,7 +1,7 @@
 import { Logger } from 'yt-cast-receiver';
 
 interface VolumioVolumeChangeListener {
-  (volume: { vol: number }): Promise<void>
+  (volume: { vol: number }): Promise<void>;
 }
 
 export default class VolumeControl {

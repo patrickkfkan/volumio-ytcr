@@ -13,7 +13,7 @@ export interface MPDPlayerError {
 
 export interface ActionEvent {
   name: 'play' | 'pause' | 'resume' | 'stop' | 'seek' | 'setVolume';
-  data?: Record<string, any>
+  data?: Record<string, any>;
 }
 
 export interface MPDPlayerConfig {
@@ -23,11 +23,11 @@ export interface MPDPlayerConfig {
 }
 
 interface CurrentVideoInfo extends VideoInfo {
-  mpdSongId?: string,
+  mpdSongId?: string;
 }
 
 export interface VolumioState {
-  service: string,
+  service: string;
   status: 'play' | 'pause' | 'stop';
   title?: string;
   artist?: string;

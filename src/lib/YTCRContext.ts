@@ -1,11 +1,11 @@
 import format from 'string-format';
 import fs from 'fs-extra';
 
-type DeviceInfo = {
-  name: string,
-  uuid: string,
-  time: string
-};
+interface DeviceInfo {
+  name: string;
+  uuid: string;
+  time: string;
+}
 
 class YTCRContext {
 
