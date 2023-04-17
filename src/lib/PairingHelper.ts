@@ -4,6 +4,10 @@ import ytcr from './YTCRContext.js';
 export default class PairingHelper {
 
   static getManualPairingCode(receiver: YouTubeCastReceiver, logger: Logger): Promise<string | null> {
+    if (receiver.status !== Constants.STATUSES.RUNNING) {
+      return Promise.resolve(null);
+    }
+
     let timeout: any = null;
     const service = receiver.getPairingCodeRequestService();
     const stopService = () => {
