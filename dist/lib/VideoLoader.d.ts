@@ -1,10 +1,15 @@
 import { Logger, Video } from 'yt-cast-receiver';
 import { AbortSignal } from 'abort-controller';
-export interface VideoInfo {
+interface BasicInfo {
     id: string;
-    errMsg?: string;
+    type?: 'song' | 'video';
     title?: string;
     channel?: string;
+    artist?: string;
+    album?: string;
+}
+export interface VideoInfo extends BasicInfo {
+    errMsg?: string;
     thumbnail?: string;
     isLive?: boolean;
     streamUrl?: string | null;
@@ -17,4 +22,5 @@ export default class VideoLoader {
     constructor(logger: Logger);
     getInfo(video: Video, abortSignal: AbortSignal): Promise<VideoInfo>;
 }
+export {};
 //# sourceMappingURL=VideoLoader.d.ts.map

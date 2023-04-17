@@ -304,7 +304,6 @@ class MPDPlayer extends yt_cast_receiver_1.Player {
         const state = {
             status: mpdStatus.state,
             service: 'ytcr',
-            album: 'YouTube Cast',
             albumart: this.#currentVideoInfo?.thumbnail || '/albumart',
             uri: '',
             trackType: 'YouTube',
@@ -323,7 +322,10 @@ class MPDPlayer extends yt_cast_receiver_1.Player {
         }
         if (this.#currentVideoInfo) {
             state.title = this.#currentVideoInfo.title;
-            state.artist = this.#currentVideoInfo.channel;
+            state.artist = this.#currentVideoInfo.channel || this.#currentVideoInfo.artist;
+            if (this.#currentVideoInfo.album) {
+                state.album = this.#currentVideoInfo.album;
+            }
             if (this.#currentVideoInfo.bitrate) {
                 state.bitrate = this.#currentVideoInfo.bitrate;
             }

@@ -1,7 +1,7 @@
 import Innertube, * as InnertubeLib from 'volumio-youtubei.js';
 import { VideoInfo as InnertubeVideoInfo } from 'volumio-youtubei.js/dist/src/parser/youtube/index.js';
 import Format from 'volumio-youtubei.js/dist/src/parser/classes/misc/Format.js';
-import { Logger, Video } from 'yt-cast-receiver';
+import { DataError, Logger, Video } from 'yt-cast-receiver';
 import { AbortSignal } from 'abort-controller';
 import fetch from 'node-fetch';
 import ytcr from './YTCRContext.js';
@@ -23,25 +23,31 @@ const BEST_AUDIO_FORMAT = {
   quality: 'best'
 } as InnertubeLib.FormatOptions;
 
-export interface VideoInfo {
-  id: string,
-  errMsg?: string,
-  title?: string,
-  channel?: string,
-  thumbnail?: string,
-  isLive?: boolean,
-  streamUrl?: string | null,
-  bitrate?: string,
-  samplerate?: number,
-  channels?: number
+interface BasicInfo {
+  id: string;
+  type?: 'song' | 'video';
+  title?: string;
+  channel?: string;
+  artist?: string;
+  album?: string;
+}
+
+export interface VideoInfo extends BasicInfo {
+  errMsg?: string;
+  thumbnail?: string;
+  isLive?: boolean;
+  streamUrl?: string | null;
+  bitrate?: string;
+  samplerate?: number;
+  channels?: number;
 }
 
 interface StreamInfo {
-  url: string | null,
-  mimeType?: string,
-  bitrate?: string | null,
-  sampleRate?: number,
-  channels?: number
+  url: string | null;
+  mimeType?: string;
+  bitrate?: string | null;
+  sampleRate?: number;
+  channels?: number;
 }
 
 export default class VideoLoader {
@@ -78,20 +84,27 @@ export default class VideoLoader {
       };
     }
 
-    // Prepare endpoint for innertube.getInfo()
-    const endpoint = new InnertubeLib.YTNodes.NavigationEndpoint({});
-    endpoint.payload = {
-      videoId: video.id
-    };
+    // Prepare request payload
+    const payload = {
+      videoId: video.id,
+      enableMdxAutoplay: true,
+      isMdxPlayback: true
+    } as any;
     if (video.context?.playlistId) {
-      endpoint.payload.playlistId = video.context.playlistId;
+      payload.playlistId = video.context.playlistId;
     }
     if (video.context?.params) {
-      endpoint.payload.params = video.context.params;
+      payload.params = video.context.params;
     }
     if (video.context?.index !== undefined) {
-      endpoint.payload.index = video.context.index;
+      payload.index = video.context.index;
     }
+
+    // Modify innertube session context to indicate we are requesting data for a 'TV' client.
+    this.#innertube.session.context.client.clientName = 'TVHTML5';
+    this.#innertube.session.context.client.clientVersion = '7.20230405.08.01';
+    this.#innertube.session.context.client.userAgent = 'Mozilla/5.0 (Windows NT 10.0; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/75.0.3770.142 Safari/537.36; SMART-TV; Tizen 4.0,gzip(gfe)';
+
     // Modify innertube's session context to include `ctt` param
     if (video.context?.ctt) {
       this.#innertube.session.context.user = {
@@ -110,35 +123,77 @@ export default class VideoLoader {
     }
 
     try {
-      const info = await this.#innertube.getInfo(endpoint);
+      // There are two endpoints we need to fetch data from:
+      // 1. '/next': for metadata (title, channel for video, artist / album for music...)
+      // 2. '/player': for streaming data
 
-      const basicInfo = info.basic_info;
-      const title = basicInfo.title;
-      const channel = basicInfo.author;
-      const thumbnail = this.#getThumbnail(basicInfo.thumbnail);
-      const isLive = !!basicInfo.is_live;
+      const nextResponse = await this.#innertube.actions.execute('/next', payload) as any;
 
+      let basicInfo: BasicInfo | null = null;
+
+      // We cannot use innertube to parse `nextResponse`, because it doesn't
+      // Have `SingleColumnWatchNextResults` parser class. We would have to do it ourselves.
+
+      const singleColumnContents = nextResponse.data?.contents?.singleColumnWatchNextResults?.
+        results?.results?.contents?.[0]?.itemSectionRenderer?.contents?.[0];
+
+      const videoMetadata = singleColumnContents?.videoMetadataRenderer;
+      const songMetadata = singleColumnContents?.musicWatchMetadataRenderer;
+
+      if (videoMetadata) {
+        basicInfo = {
+          id: video.id,
+          type: 'video',
+          title: new InnertubeLib.Misc.Text(videoMetadata.title).toString(),
+          channel: new InnertubeLib.Misc.Text(videoMetadata.owner?.videoOwnerRenderer?.title).toString()
+        };
+      }
+      else if (songMetadata) {
+        basicInfo = {
+          id: video.id,
+          type: 'song',
+          title: new InnertubeLib.Misc.Text(songMetadata.title).toString(),
+          artist: new InnertubeLib.Misc.Text(songMetadata.byline).toString(),
+          album: new InnertubeLib.Misc.Text(songMetadata.albumName).toString()
+        };
+      }
+
+      if (!basicInfo) {
+        throw new DataError('Metadata not found in response');
+      }
+
+      // Fetch response from '/player' endpoint.
+      const playerResponse = await this.#innertube.actions.execute('/player', payload) as any;
+
+      // Wrap it in innertube VideoInfo.
+      const innertubeVideoInfo = new InnertubeLib.YT.VideoInfo([ playerResponse ],
+        this.#innertube.actions, this.#innertube.session.player, InnertubeLib.Utils.generateRandomString(16));
+
+      const thumbnail = this.#getThumbnail(innertubeVideoInfo.basic_info.thumbnail);
+      const isLive = !!innertubeVideoInfo.basic_info.is_live;
+
+      // Retrieve stream info
       let playable = false;
       let errMsg = null;
       let streamInfo = null;
-      if (info.playability_status.status === 'UNPLAYABLE') {
-        if (info.has_trailer) {
-          const trailerInfo = info.getTrailerInfo();
+      if (innertubeVideoInfo.playability_status.status === 'UNPLAYABLE') {
+        if (innertubeVideoInfo.has_trailer) {
+          const trailerInfo = innertubeVideoInfo.getTrailerInfo();
           if (trailerInfo) {
             streamInfo = this.#chooseFormat(trailerInfo);
           }
         }
         else {
-          errMsg = info.playability_status.reason;
+          errMsg = innertubeVideoInfo.playability_status.reason;
         }
       }
       else if (!isLive) {
-        streamInfo = this.#chooseFormat(info);
+        streamInfo = this.#chooseFormat(innertubeVideoInfo);
       }
-      else if (info.streaming_data?.hls_manifest_url) {
+      else if (innertubeVideoInfo.streaming_data?.hls_manifest_url) {
         const targetQuality = ytcr.getConfigValue('liveStreamQuality', 'auto');
         streamInfo = {
-          url: await this.#getStreamUrlFromHLS(info.streaming_data.hls_manifest_url, targetQuality)
+          url: await this.#getStreamUrlFromHLS(innertubeVideoInfo.streaming_data.hls_manifest_url, targetQuality)
         };
       }
 
@@ -149,10 +204,8 @@ export default class VideoLoader {
       }
 
       return {
-        id: video.id,
+        ...basicInfo,
         errMsg: errMsg || undefined,
-        title,
-        channel,
         thumbnail,
         isLive,
         streamUrl: streamInfo?.url,
