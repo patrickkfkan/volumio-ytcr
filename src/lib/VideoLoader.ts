@@ -54,6 +54,8 @@ export default class VideoLoader {
 
   #innertube: Innertube | null;
   #logger: Logger;
+  #innertubeInitialClient: InnertubeLib.Context['client'];
+  #innertubeTVClient: InnertubeLib.Context['client'];
 
   constructor(logger: Logger) {
     this.#innertube = null;
@@ -63,6 +65,13 @@ export default class VideoLoader {
   async #init() {
     if (!this.#innertube) {
       this.#innertube = await Innertube.create();
+      this.#innertubeInitialClient = {...this.#innertube.session.context.client};
+      this.#innertubeTVClient = {
+        ...this.#innertube.session.context.client,
+        clientName: 'TVHTML5',
+        clientVersion: '7.20230405.08.01',
+        userAgent: 'Mozilla/5.0 (Windows NT 10.0; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/75.0.3770.142 Safari/537.36; SMART-TV; Tizen 4.0,gzip(gfe)'
+      };
     }
   }
 
@@ -100,10 +109,8 @@ export default class VideoLoader {
       payload.index = video.context.index;
     }
 
-    // Modify innertube session context to indicate we are requesting data for a 'TV' client.
-    this.#innertube.session.context.client.clientName = 'TVHTML5';
-    this.#innertube.session.context.client.clientVersion = '7.20230405.08.01';
-    this.#innertube.session.context.client.userAgent = 'Mozilla/5.0 (Windows NT 10.0; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/75.0.3770.142 Safari/537.36; SMART-TV; Tizen 4.0,gzip(gfe)';
+    // We are requesting data as a 'TV' client
+    this.#innertube.session.context.client = this.#innertubeTVClient;
 
     // Modify innertube's session context to include `ctt` param
     if (video.context?.ctt) {
@@ -123,9 +130,30 @@ export default class VideoLoader {
     }
 
     try {
-      // There are two endpoints we need to fetch data from:
-      // 1. '/next': for metadata (title, channel for video, artist / album for music...)
-      // 2. '/player': for streaming data
+      /**
+       * There are two endpoints we need to fetch data from:
+       * 1. '/next': for metadata (title, channel for video, artist / album for music...)
+       * 2. '/player': for streaming data
+       *
+       * Why not just use innertube.getInfo()?
+       *
+       * Because we have set `client` in session context to 'TV', the response for the
+       * '/next' endpoint will not be what innertube expects. Instead of `TwoColumnWatchNextResults`
+       * which innertube expects to be in the response data, we'll get `singleColumnWatchNextResults`
+       * instead. So we have to parse this ourselves.
+       *
+       * On the other hand, for the '/player' endpoint, the response can be parsed by
+       * innertube `VideoInfo` class (which is what `getInfo()` returns). So we do that - BUT
+       * see caveat further down regarding livestreams.
+       *
+       * So, why do we set `client` in session context to 'TV'?
+       *
+       * Because, if we don't do this, private uploads to YouTube Music library will
+       * return 'Video unavailable' in the playability status of '/player' response.
+       * By representing ourselves as a 'TV' client, and having also set `ctt` params,
+       * `mdxPlayback` in payload, etc., YouTube understands we are playing videos in
+       * a Cast session and will grant us access to the private streams.
+       */
 
       const nextResponse = await this.#innertube.actions.execute('/next', payload) as any;
 
@@ -166,11 +194,39 @@ export default class VideoLoader {
       const playerResponse = await this.#innertube.actions.execute('/player', payload) as any;
 
       // Wrap it in innertube VideoInfo.
-      const innertubeVideoInfo = new InnertubeLib.YT.VideoInfo([ playerResponse ],
+      let innertubeVideoInfo = new InnertubeLib.YT.VideoInfo([ playerResponse ],
         this.#innertube.actions, this.#innertube.session.player, InnertubeLib.Utils.generateRandomString(16));
 
       const thumbnail = this.#getThumbnail(innertubeVideoInfo.basic_info.thumbnail);
       const isLive = !!innertubeVideoInfo.basic_info.is_live;
+
+      /**
+       * If video is a livestream, then we only get a `dash_manifest_url` in the info
+       * when fetching as a 'TV' client (the other adaptive formats are only
+       * a few minutes long, so they are useless). The url is valid, but Volumio
+       * won't be able to stream from it because the bundled FFmpeg (v4.1.9 at the time
+       * of this comment) will fail with 'Floating point exception'.
+       *
+       * Notes to self:
+       * 1. Tested with FFmpeg v4.3.6 which plays but with occasional hiccups due to
+       *    'Non-monotonous DTS in output stream' errors. Maybe later versions will work?
+       * 2. Assume FFmpeg is able to play without issues, we are still unsure how it will flair
+       *    when used with MPD as the player.
+       *
+       * So, when we get a livestream, we need to refetch '/player' response *as a non-TV client*.
+       * The info will then contain an `hls_manifest_url` which we can use for playback.
+       *
+       * To be tested: whether private livestreams are inaccessible for the same reason private
+       * YouTube Music library uploads are 'unavailable' when not fetching as a 'TV' client.
+       */
+      if (isLive) {
+        this.#innertube.session.context.client = this.#innertubeInitialClient;
+        delete payload.enableMdxAutoplay;
+        delete payload.isMdxPlayback;
+        const nonTVPlayerResponse = await this.#innertube.actions.execute('/player', payload) as any;
+        innertubeVideoInfo = new InnertubeLib.YT.VideoInfo([ nonTVPlayerResponse ],
+          this.#innertube.actions, this.#innertube.session.player, InnertubeLib.Utils.generateRandomString(16));
+      }
 
       // Retrieve stream info
       let playable = false;
