@@ -312,7 +312,7 @@ class MPDPlayer extends yt_cast_receiver_1.Player {
             volume: mpdStatus.volume || 0
         };
         const audio = mpdStatus?.audio;
-        if (audio) {
+        if (audio && !this.#currentVideoInfo?.bitrate) {
             if (audio.bits && audio.bits !== 'f') {
                 state.bitdepth = `${audio.bits.toString()} bit`;
             }
@@ -335,8 +335,22 @@ class MPDPlayer extends yt_cast_receiver_1.Player {
             state.isStreaming = this.#currentVideoInfo.isLive;
             if (this.#currentVideoInfo.isLive) {
                 state.duration = 0;
-                state.seek = 0;
+                state.seek = undefined;
             }
+            const youtubeCastText = `YouTube Cast${this.#currentVideoInfo.isLive ? ' (Live)' : ''}`;
+            if (state.bitdepth) {
+                state.bitdepth = `${state.bitdepth} - ${youtubeCastText}`;
+            }
+            else if (state.samplerate) {
+                state.samplerate = `${state.samplerate} - ${youtubeCastText}`;
+            }
+            else if (state.bitrate) {
+                state.samplerate = `${state.bitrate} - ${youtubeCastText}`;
+            }
+            else {
+                state.samplerate = youtubeCastText;
+            }
+            delete state.bitrate;
         }
         return state;
     }

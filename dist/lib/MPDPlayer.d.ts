@@ -24,7 +24,7 @@ export interface VolumioState {
     albumart: string;
     uri: string;
     trackType: string;
-    seek: number;
+    seek?: number;
     duration: number;
     samplerate?: string;
     bitdepth?: string;
