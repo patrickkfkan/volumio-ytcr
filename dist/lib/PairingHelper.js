@@ -6,6 +6,7 @@ Object.defineProperty(exports, "__esModule", { value: true });
 const yt_cast_receiver_1 = require("yt-cast-receiver");
 const YTCRContext_js_1 = __importDefault(require("./YTCRContext.js"));
 class PairingHelper {
+    static #toastFetchingTimer = null;
     static getManualPairingCode(receiver, logger) {
         if (receiver.status !== yt_cast_receiver_1.Constants.STATUSES.RUNNING) {
             return Promise.resolve(null);
@@ -13,6 +14,7 @@ class PairingHelper {
         let timeout = null;
         const service = receiver.getPairingCodeRequestService();
         const stopService = () => {
+            this.#cancelToastFetching();
             if (timeout) {
                 clearTimeout(timeout);
                 timeout = null;
@@ -26,7 +28,7 @@ class PairingHelper {
         return new Promise((resolve) => {
             service.on('request', () => {
                 logger.debug('[ytcr] Obtaining manual pairing code...');
-                YTCRContext_js_1.default.toast('info', YTCRContext_js_1.default.getI18n('YTCR_FETCHING_TV_CODE'));
+                this.#toastFetching();
             });
             service.on('response', (code) => {
                 stopService();
@@ -49,6 +51,18 @@ class PairingHelper {
                 resolve(null);
             }, 10000);
         });
+    }
+    static #toastFetching() {
+        this.#cancelToastFetching();
+        this.#toastFetchingTimer = setTimeout(() => {
+            YTCRContext_js_1.default.toast('info', YTCRContext_js_1.default.getI18n('YTCR_FETCHING_TV_CODE'));
+        }, 4000);
+    }
+    static #cancelToastFetching() {
+        if (this.#toastFetchingTimer) {
+            clearTimeout(this.#toastFetchingTimer);
+            this.#toastFetchingTimer = null;
+        }
     }
 }
 exports.default = PairingHelper;

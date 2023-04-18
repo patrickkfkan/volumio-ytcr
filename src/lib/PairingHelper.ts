@@ -3,6 +3,8 @@ import ytcr from './YTCRContext.js';
 
 export default class PairingHelper {
 
+  static #toastFetchingTimer: NodeJS.Timeout | null = null;
+
   static getManualPairingCode(receiver: YouTubeCastReceiver, logger: Logger): Promise<string | null> {
     if (receiver.status !== Constants.STATUSES.RUNNING) {
       return Promise.resolve(null);
@@ -11,6 +13,7 @@ export default class PairingHelper {
     let timeout: any = null;
     const service = receiver.getPairingCodeRequestService();
     const stopService = () => {
+      this.#cancelToastFetching();
       if (timeout) {
         clearTimeout(timeout);
         timeout = null;
@@ -26,7 +29,7 @@ export default class PairingHelper {
     return new Promise((resolve) => {
       service.on('request', () => {
         logger.debug('[ytcr] Obtaining manual pairing code...');
-        ytcr.toast('info', ytcr.getI18n('YTCR_FETCHING_TV_CODE'));
+        this.#toastFetching();
       });
 
       service.on('response', (code: string) => {
@@ -53,5 +56,19 @@ export default class PairingHelper {
         resolve(null);
       }, 10000);
     });
+  }
+
+  static #toastFetching() {
+    this.#cancelToastFetching();
+    this.#toastFetchingTimer = setTimeout(() => {
+      ytcr.toast('info', ytcr.getI18n('YTCR_FETCHING_TV_CODE'));
+    }, 4000);
+  }
+
+  static #cancelToastFetching() {
+    if (this.#toastFetchingTimer) {
+      clearTimeout(this.#toastFetchingTimer);
+      this.#toastFetchingTimer = null;
+    }
   }
 }
