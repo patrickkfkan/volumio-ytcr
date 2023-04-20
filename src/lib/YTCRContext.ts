@@ -74,6 +74,10 @@ class YTCRContext {
     }
   }
 
+  setConfigValue(key: string, value: any, json = false) {
+    this.#pluginConfig.set(key, json ? JSON.stringify(value) : value);
+  }
+
   getMpdPlugin(): any {
     return this.#getSingleton('mpdPlugin', () => this.#pluginContext.coreCommand.pluginManager.getPlugin('music_service', 'mpd'));
   }

@@ -12,6 +12,7 @@ import VolumeControl from './lib/VolumeControl.js';
 import * as utils from './lib/Utils.js';
 import VideoLoader from './lib/VideoLoader.js';
 import PairingHelper from './lib/PairingHelper.js';
+import ReceiverDataStore from './lib/ReceiverDataStore.js';
 
 const IDLE_STATE = {
   status: 'stop',
@@ -42,10 +43,12 @@ class ControllerYTCR {
   #player: MPDPlayer;
   #volumeControl: VolumeControl;
   #receiver: YouTubeCastReceiver;
+  #dataStore: ReceiverDataStore;
 
   constructor(context: any) {
     this.#context = context;
     this.#commandRouter = context.coreCommand;
+    this.#dataStore = new ReceiverDataStore();
     this.#logger = new Logger(context.logger);
     this.#serviceName = 'ytcr';
   }
@@ -165,6 +168,7 @@ class ControllerYTCR {
       app: {
         enableAutoplayOnConnect: ytcr.getConfigValue('enableAutoplayOnConnect', true)
       },
+      dataStore: this.#dataStore,
       logger: this.#logger,
       logLevel: ytcr.getConfigValue('debug', false) ? Constants.LOG_LEVELS.DEBUG : Constants.LOG_LEVELS.INFO
     });

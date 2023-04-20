@@ -39,6 +39,7 @@ const VolumeControl_js_1 = __importDefault(require("./lib/VolumeControl.js"));
 const utils = __importStar(require("./lib/Utils.js"));
 const VideoLoader_js_1 = __importDefault(require("./lib/VideoLoader.js"));
 const PairingHelper_js_1 = __importDefault(require("./lib/PairingHelper.js"));
+const ReceiverDataStore_js_1 = __importDefault(require("./lib/ReceiverDataStore.js"));
 const IDLE_STATE = {
     status: 'stop',
     service: 'ytcr',
@@ -65,9 +66,11 @@ class ControllerYTCR {
     #player;
     #volumeControl;
     #receiver;
+    #dataStore;
     constructor(context) {
         this.#context = context;
         this.#commandRouter = context.coreCommand;
+        this.#dataStore = new ReceiverDataStore_js_1.default();
         this.#logger = new Logger_js_1.default(context.logger);
         this.#serviceName = 'ytcr';
     }
@@ -166,6 +169,7 @@ class ControllerYTCR {
             app: {
                 enableAutoplayOnConnect: YTCRContext_js_1.default.getConfigValue('enableAutoplayOnConnect', true)
             },
+            dataStore: this.#dataStore,
             logger: this.#logger,
             logLevel: YTCRContext_js_1.default.getConfigValue('debug', false) ? yt_cast_receiver_1.Constants.LOG_LEVELS.DEBUG : yt_cast_receiver_1.Constants.LOG_LEVELS.INFO
         });

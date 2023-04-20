@@ -60,6 +60,9 @@ class YTCRContext {
             return defaultValue;
         }
     }
+    setConfigValue(key, value, json = false) {
+        this.#pluginConfig.set(key, json ? JSON.stringify(value) : value);
+    }
     getMpdPlugin() {
         return this.#getSingleton('mpdPlugin', () => this.#pluginContext.coreCommand.pluginManager.getPlugin('music_service', 'mpd'));
     }
