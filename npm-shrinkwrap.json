@@ -5345,6 +5345,11 @@
 				"whatwg-url": "^5.0.0"
 			}
 		},
+		"node-persist": {
+			"version": "3.1.3",
+			"resolved": "https://registry.npmjs.org/node-persist/-/node-persist-3.1.3.tgz",
+			"integrity": "sha512-CaFv+kSZtsc+VeDRldK1yR47k1vPLBpzYB9re2z7LIwITxwBtljMq3s8VQnnr+x3E8pQfHbc5r2IyJsBLJhtXg=="
+		},
 		"nth-check": {
 			"version": "2.1.1",
 			"resolved": "https://registry.npmjs.org/nth-check/-/nth-check-2.1.1.tgz",
@@ -6107,6 +6112,7 @@
 				"line-by-line": "^0.1.6",
 				"newline-remove": "^1.0.2",
 				"node-fetch": "^2.6.9",
+				"node-persist": "^3.1.3",
 				"query-string": "^7.0.0",
 				"timer-node": "^5.0.7",
 				"uuid": "^9.0.0",
