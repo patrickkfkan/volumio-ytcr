@@ -25,7 +25,7 @@ const BEST_AUDIO_FORMAT = {
 
 interface BasicInfo {
   id: string;
-  type?: 'song' | 'video';
+  src?: 'yt' | 'ytmusic';
   title?: string;
   channel?: string;
   artist?: string;
@@ -93,11 +93,18 @@ export default class VideoLoader {
       };
     }
 
+    const cpn = InnertubeLib.Utils.generateRandomString(16);
+
     // Prepare request payload
     const payload = {
       videoId: video.id,
       enableMdxAutoplay: true,
-      isMdxPlayback: true
+      isMdxPlayback: true,
+      playbackContext: {
+        contentPlaybackContext: {
+          signatureTimestamp: this.#innertube.session.player?.sts || 0
+        }
+      }
     } as any;
     if (video.context?.playlistId) {
       payload.playlistId = video.context.playlistId;
@@ -130,30 +137,9 @@ export default class VideoLoader {
     }
 
     try {
-      /**
-       * There are two endpoints we need to fetch data from:
-       * 1. '/next': for metadata (title, channel for video, artist / album for music...)
-       * 2. '/player': for streaming data
-       *
-       * Why not just use innertube.getInfo()?
-       *
-       * Because we have set `client` in session context to 'TV', the response for the
-       * '/next' endpoint will not be what innertube expects. Instead of `TwoColumnWatchNextResults`
-       * which innertube expects to be in the response data, we'll get `singleColumnWatchNextResults`
-       * instead. So we have to parse this ourselves.
-       *
-       * On the other hand, for the '/player' endpoint, the response can be parsed by
-       * innertube `VideoInfo` class (which is what `getInfo()` returns). So we do that - BUT
-       * see caveat further down regarding livestreams.
-       *
-       * So, why do we set `client` in session context to 'TV'?
-       *
-       * Because, if we don't do this, private uploads to YouTube Music library will
-       * return 'Video unavailable' in the playability status of '/player' response.
-       * By representing ourselves as a 'TV' client, and having also set `ctt` params,
-       * `mdxPlayback` in payload, etc., YouTube understands we are playing videos in
-       * a Cast session and will grant us access to the private streams.
-       */
+      // There are two endpoints we need to fetch data from:
+      // 1. '/next': for metadata (title, channel for video, artist / album for music...)
+      // 2. '/player': for streaming data
 
       const nextResponse = await this.#innertube.actions.execute('/next', payload) as any;
 
@@ -171,7 +157,7 @@ export default class VideoLoader {
       if (videoMetadata) {
         basicInfo = {
           id: video.id,
-          type: 'video',
+          src: 'yt',
           title: new InnertubeLib.Misc.Text(videoMetadata.title).toString(),
           channel: new InnertubeLib.Misc.Text(videoMetadata.owner?.videoOwnerRenderer?.title).toString()
         };
@@ -179,10 +165,10 @@ export default class VideoLoader {
       else if (songMetadata) {
         basicInfo = {
           id: video.id,
-          type: 'song',
+          src: 'ytmusic',
           title: new InnertubeLib.Misc.Text(songMetadata.title).toString(),
           artist: new InnertubeLib.Misc.Text(songMetadata.byline).toString(),
-          album: new InnertubeLib.Misc.Text(songMetadata.albumName).toString()
+          album: songMetadata.albumName ? new InnertubeLib.Misc.Text(songMetadata.albumName).toString() : ''
         };
       }
 
@@ -191,42 +177,21 @@ export default class VideoLoader {
       }
 
       // Fetch response from '/player' endpoint.
+      // But first revert to initial client in innertube context, otherwise livestreams will only have DASH manifest URL
+      // - what we need is the HLS manifest URL
+      this.#innertube.session.context.client = {...this.#innertubeInitialClient};
+      if (basicInfo.src === 'ytmusic') {
+        // For YouTube Music, it is also necessary to set `payload.client` to 'YTMUSIC'. Innertube will modify
+        // `context.client` with YouTube Music client info before submitting it to the '/player' endpoint.
+        payload.client = 'YTMUSIC';
+      }
       const playerResponse = await this.#innertube.actions.execute('/player', payload) as any;
 
       // Wrap it in innertube VideoInfo.
-      let innertubeVideoInfo = new InnertubeLib.YT.VideoInfo([ playerResponse ],
-        this.#innertube.actions, this.#innertube.session.player, InnertubeLib.Utils.generateRandomString(16));
+      const innertubeVideoInfo = new InnertubeLib.YT.VideoInfo([ playerResponse ], this.#innertube.actions, this.#innertube.session.player, cpn);
 
       const thumbnail = this.#getThumbnail(innertubeVideoInfo.basic_info.thumbnail);
       const isLive = !!innertubeVideoInfo.basic_info.is_live;
-
-      /**
-       * If video is a livestream, then we only get a `dash_manifest_url` in the info
-       * when fetching as a 'TV' client (the other adaptive formats are only
-       * a few minutes long, so they are useless). The url is valid, but Volumio
-       * won't be able to stream from it because the bundled FFmpeg (v4.1.9 at the time
-       * of this comment) will fail with 'Floating point exception'.
-       *
-       * Notes to self:
-       * 1. Tested with FFmpeg v4.3.6 which plays but with occasional hiccups due to
-       *    'Non-monotonous DTS in output stream' errors. Maybe later versions will work?
-       * 2. Assume FFmpeg is able to play without issues, we are still unsure how it will flair
-       *    when used with MPD as the player.
-       *
-       * So, when we get a livestream, we need to refetch '/player' response *as a non-TV client*.
-       * The info will then contain an `hls_manifest_url` which we can use for playback.
-       *
-       * To be tested: whether private livestreams are inaccessible for the same reason private
-       * YouTube Music library uploads are 'unavailable' when not fetching as a 'TV' client.
-       */
-      if (isLive) {
-        this.#innertube.session.context.client = this.#innertubeInitialClient;
-        delete payload.enableMdxAutoplay;
-        delete payload.isMdxPlayback;
-        const nonTVPlayerResponse = await this.#innertube.actions.execute('/player', payload) as any;
-        innertubeVideoInfo = new InnertubeLib.YT.VideoInfo([ nonTVPlayerResponse ],
-          this.#innertube.actions, this.#innertube.session.player, InnertubeLib.Utils.generateRandomString(16));
-      }
 
       // Retrieve stream info
       let playable = false;

@@ -2,7 +2,7 @@ import { Logger, Video } from 'yt-cast-receiver';
 import { AbortSignal } from 'abort-controller';
 interface BasicInfo {
     id: string;
-    type?: 'song' | 'video';
+    src?: 'yt' | 'ytmusic';
     title?: string;
     channel?: string;
     artist?: string;
