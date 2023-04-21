@@ -54,7 +54,7 @@ class MPDPlayer extends yt_cast_receiver_1.Player {
             videoInfo = await this.#videoLoader.getInfo(video, this.#loadVideoAbortController.signal);
         }
         catch (error) {
-            if (error.name === 'AbortError') {
+            if (error instanceof Error && error.name === 'AbortError') {
                 this.logger.debug('[ytcr] AbortError:', error);
                 return false;
             }

@@ -101,7 +101,7 @@ export default class MPDPlayer extends Player {
       videoInfo = await this.#videoLoader.getInfo(video, this.#loadVideoAbortController.signal) as CurrentVideoInfo;
     }
     catch (error: any) {
-      if (error.name === 'AbortError') {
+      if (error instanceof Error && error.name === 'AbortError') {
         this.logger.debug('[ytcr] AbortError:', error);
         return false;
       }

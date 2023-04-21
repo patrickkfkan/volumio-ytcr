@@ -83,15 +83,19 @@ export default class VideoLoader {
       throw Error('VideoLoader not initialized');
     }
 
-    this.#logger.debug(`[ytcr] VideoLoader.getInfo: ${video.id}`);
-
-    if (abortSignal) {
-      abortSignal.onabort = () => {
-        const abortError = Error(`VideoLoader.getInfo() aborted for video Id: ${video.id}`);
+    const checkAbortSignal = () => {
+      if (abortSignal.aborted) {
+        const msg = `VideoLoader.getInfo() aborted for video Id: ${video.id}`;
+        this.#logger.debug(`[ytcr] ${msg}.`);
+        const abortError = Error(msg);
         abortError.name = 'AbortError';
         throw abortError;
-      };
-    }
+      }
+    };
+
+    this.#logger.debug(`[ytcr] VideoLoader.getInfo: ${video.id}`);
+
+    checkAbortSignal();
 
     const cpn = InnertubeLib.Utils.generateRandomString(16);
 
@@ -142,6 +146,7 @@ export default class VideoLoader {
       // 2. '/player': for streaming data
 
       const nextResponse = await this.#innertube.actions.execute('/next', payload) as any;
+      checkAbortSignal();
 
       let basicInfo: BasicInfo | null = null;
 
@@ -186,6 +191,7 @@ export default class VideoLoader {
         payload.client = 'YTMUSIC';
       }
       const playerResponse = await this.#innertube.actions.execute('/player', payload) as any;
+      checkAbortSignal();
 
       // Wrap it in innertube VideoInfo.
       const innertubeVideoInfo = new InnertubeLib.YT.VideoInfo([ playerResponse ], this.#innertube.actions, this.#innertube.session.player, cpn);
@@ -224,6 +230,8 @@ export default class VideoLoader {
         errMsg = ytcr.getI18n('YTCR_STREAM_NOT_FOUND');
       }
 
+      checkAbortSignal();
+
       return {
         ...basicInfo,
         errMsg: errMsg || undefined,
@@ -236,7 +244,10 @@ export default class VideoLoader {
       };
 
     }
-    catch (error) {
+    catch (error: any) {
+      if (error instanceof Error && error.name === 'AbortError') {
+        throw error;
+      }
       this.#logger.error(`[ytcr] Error in VideoLoader.getInfo(${video.id}):`, error);
       return {
         id: video.id,
