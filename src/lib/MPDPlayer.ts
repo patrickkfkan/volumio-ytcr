@@ -1,4 +1,4 @@
-import { Constants, Player, PlayerState, Video } from 'yt-cast-receiver';
+import { Constants, Player, PlayerState, Video, Volume } from 'yt-cast-receiver';
 import mpdApi, { MPDApi } from 'mpd-api';
 import { MPD } from 'mpd2';
 import AbortController from 'abort-controller';
@@ -42,6 +42,7 @@ export interface VolumioState {
   bitrate?: string;
   channels?: number;
   volume: number;
+  mute: boolean;
   isStreaming?: boolean;
 }
 
@@ -246,7 +247,7 @@ export default class MPDPlayer extends Player {
     );
   }
 
-  protected async doSetVolume(volume: number): Promise<boolean> {
+  protected async doSetVolume(volume: Volume): Promise<boolean> {
     if (this.#asleep || this.#destroyed) {
       return false;
     }
@@ -257,13 +258,13 @@ export default class MPDPlayer extends Player {
       return false;
     }
 
-    this.logger.debug(`[ytcr] MPDPlayer: set volume to ${volume}`);
+    this.logger.debug('[ytcr] MPDPlayer: set volume to:', volume);
     this.#volumeControl.setVolume(volume);
 
     return true;
   }
 
-  protected doGetVolume(): Promise<number> {
+  protected doGetVolume(): Promise<Volume> {
     return this.#volumeControl.getVolume();
   }
 
@@ -420,6 +421,7 @@ export default class MPDPlayer extends Player {
     }
 
     const mpdStatus: any = await this.#mpdClient.api.status.get();
+    const volume: Volume = await this.#volumeControl.getVolume();
 
     if (!mpdStatus) {
       return null;
@@ -433,7 +435,8 @@ export default class MPDPlayer extends Player {
       trackType: 'YouTube',
       seek: Math.round((mpdStatus.elapsed || 0) * 1000),
       duration: Math.round(mpdStatus.time?.total || 0),
-      volume: mpdStatus.volume || 0
+      volume: volume.level,
+      mute: volume.muted
     };
 
     const audio = mpdStatus?.audio;

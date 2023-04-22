@@ -1,4 +1,4 @@
-import { Player, PlayerState, Video } from 'yt-cast-receiver';
+import { Player, PlayerState, Video, Volume } from 'yt-cast-receiver';
 import { MPD } from 'mpd2';
 import { SubsystemName } from './MPDSubsystemEventEmitter.js';
 import VolumeControl from './VolumeControl.js';
@@ -31,6 +31,7 @@ export interface VolumioState {
     bitrate?: string;
     channels?: number;
     volume: number;
+    mute: boolean;
     isStreaming?: boolean;
 }
 export default class MPDPlayer extends Player {
@@ -42,8 +43,8 @@ export default class MPDPlayer extends Player {
     protected doResume(): Promise<boolean>;
     protected doStop(): Promise<boolean>;
     protected doSeek(position: number): Promise<boolean>;
-    protected doSetVolume(volume: number): Promise<boolean>;
-    protected doGetVolume(): Promise<number>;
+    protected doSetVolume(volume: Volume): Promise<boolean>;
+    protected doGetVolume(): Promise<Volume>;
     protected doGetPosition(): Promise<number>;
     protected doGetDuration(): Promise<number>;
     destroy(): Promise<void>;

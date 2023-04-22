@@ -1,14 +1,17 @@
-import { Logger } from 'yt-cast-receiver';
+import { Logger, Volume } from 'yt-cast-receiver';
+export interface VolumioVolume {
+    vol: number;
+    mute: boolean;
+}
 interface VolumioVolumeChangeListener {
-    (volume: {
-        vol: number;
-    }): Promise<void>;
+    (volume: VolumioVolume): Promise<void>;
 }
 export default class VolumeControl {
     #private;
     constructor(commandRouter: any, logger: Logger);
-    setVolume(volume: number, setInternalOnly?: boolean): Promise<void>;
-    getVolume(): Promise<number>;
+    init(): Promise<void>;
+    setVolume(volume: Volume, setInternalOnly?: boolean): Promise<void>;
+    getVolume(): Promise<Volume>;
     registerVolumioVolumeChangeListener(listener: VolumioVolumeChangeListener): void;
     unregisterVolumioVolumeChangeListener(): void;
 }

@@ -160,7 +160,7 @@ class MPDPlayer extends yt_cast_receiver_1.Player {
         if (this.#asleep || this.#destroyed) {
             return false;
         }
-        this.logger.debug(`[ytcr] MPDPlayer: set volume to ${volume}`);
+        this.logger.debug('[ytcr] MPDPlayer: set volume to:', volume);
         this.#volumeControl.setVolume(volume);
         return true;
     }
@@ -298,6 +298,7 @@ class MPDPlayer extends yt_cast_receiver_1.Player {
             return null;
         }
         const mpdStatus = await this.#mpdClient.api.status.get();
+        const volume = await this.#volumeControl.getVolume();
         if (!mpdStatus) {
             return null;
         }
@@ -309,7 +310,8 @@ class MPDPlayer extends yt_cast_receiver_1.Player {
             trackType: 'YouTube',
             seek: Math.round((mpdStatus.elapsed || 0) * 1000),
             duration: Math.round(mpdStatus.time?.total || 0),
-            volume: mpdStatus.volume || 0
+            volume: volume.level,
+            mute: volume.muted
         };
         const audio = mpdStatus?.audio;
         if (audio && !this.#currentVideoInfo?.bitrate) {

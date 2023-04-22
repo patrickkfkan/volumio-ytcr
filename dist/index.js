@@ -212,20 +212,24 @@ class ControllerYTCR {
             }
         });
         // Listen for changes in volume on Volumio's end
-        this.#volumeControl.registerVolumioVolumeChangeListener(async (volume) => {
+        this.#volumeControl.registerVolumioVolumeChangeListener(async (volumioVol) => {
+            const volume = {
+                level: volumioVol.vol,
+                muted: volumioVol.mute
+            };
             if (this.isCurrentService() && this.#hasConnectedSenders()) {
                 // SetVolume() will trigger volumioupdatevolume() which will trigger the statemachine's
                 // PushState() - but old volatile state with outdated info will be used.
                 // So we push the latest state here to refresh the old volatile state.
-                this.#logger.debug(`[ytcr] Update volume to ${volume.vol}`);
+                this.#logger.debug('[ytcr] Captured change in Volumio\'s volume:', volumioVol);
                 await this.pushState();
-                await this.#volumeControl.setVolume(volume.vol, true);
+                await this.#volumeControl.setVolume(volume, true);
                 await this.pushState(); // Do it once more
                 await this.#player.notifyExternalStateChange();
             }
             else {
                 // Even if not current service, we keep track of the updated volume
-                await this.#volumeControl.setVolume(volume.vol, true);
+                await this.#volumeControl.setVolume(volume, true);
             }
         });
         this.#player.on('state', async (states) => {
@@ -245,7 +249,8 @@ class ControllerYTCR {
             YTCRContext_js_1.default.toast('error', error.message);
         });
         receiver.start().then(async () => {
-            this.#player.init();
+            await this.#volumeControl.init();
+            await this.#player.init();
             this.#logger.debug('[ytcr] Receiver started.');
             defer.resolve();
         })
