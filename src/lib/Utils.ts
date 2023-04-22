@@ -47,5 +47,5 @@ export function getNetworkInterfaces() {
 }
 
 export function hasNetworkInterface(ifName: string): boolean {
-  return !!getNetworkInterfaces().find((info) => info.name === ifName) !== undefined;
+  return !!getNetworkInterfaces().find((info) => info.name === ifName);
 }

@@ -50,7 +50,7 @@ function getNetworkInterfaces() {
 }
 exports.getNetworkInterfaces = getNetworkInterfaces;
 function hasNetworkInterface(ifName) {
-    return !!getNetworkInterfaces().find((info) => info.name === ifName) !== undefined;
+    return !!getNetworkInterfaces().find((info) => info.name === ifName);
 }
 exports.hasNetworkInterface = hasNetworkInterface;
 //# sourceMappingURL=Utils.js.map
