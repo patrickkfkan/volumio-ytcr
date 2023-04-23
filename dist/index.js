@@ -62,6 +62,7 @@ class ControllerYTCR {
     #config;
     #commandRouter;
     #volatileCallback;
+    #previousTrackTimer;
     #logger;
     #player;
     #volumeControl;
@@ -72,6 +73,7 @@ class ControllerYTCR {
         this.#commandRouter = context.coreCommand;
         this.#dataStore = new ReceiverDataStore_js_1.default();
         this.#logger = new Logger_js_1.default(context.logger);
+        this.#previousTrackTimer = null;
         this.#serviceName = 'ytcr';
     }
     getUIConfig() {
@@ -434,6 +436,18 @@ class ControllerYTCR {
         return utils.jsPromiseToKew(this.#player.next());
     }
     previous() {
+        if (this.#previousTrackTimer) {
+            clearTimeout(this.#previousTrackTimer);
+            this.#previousTrackTimer = null;
+            return utils.jsPromiseToKew(this.#player.previous());
+        }
+        if (this.#player.status === yt_cast_receiver_1.Constants.PLAYER_STATUSES.PLAYING ||
+            this.#player.status === yt_cast_receiver_1.Constants.PLAYER_STATUSES.PAUSED) {
+            this.#previousTrackTimer = setTimeout(() => {
+                this.#previousTrackTimer = null;
+            }, 3000);
+            return this.#player.seek(0);
+        }
         return utils.jsPromiseToKew(this.#player.previous());
     }
 }

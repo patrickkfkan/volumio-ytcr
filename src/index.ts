@@ -38,6 +38,7 @@ class ControllerYTCR {
   #config: any;
   #commandRouter: any;
   #volatileCallback: any;
+  #previousTrackTimer: NodeJS.Timeout | null;
 
   #logger: Logger;
   #player: MPDPlayer;
@@ -50,6 +51,7 @@ class ControllerYTCR {
     this.#commandRouter = context.coreCommand;
     this.#dataStore = new ReceiverDataStore();
     this.#logger = new Logger(context.logger);
+    this.#previousTrackTimer = null;
     this.#serviceName = 'ytcr';
   }
 
@@ -468,6 +470,18 @@ class ControllerYTCR {
   }
 
   previous() {
+    if (this.#previousTrackTimer) {
+      clearTimeout(this.#previousTrackTimer);
+      this.#previousTrackTimer = null;
+      return utils.jsPromiseToKew(this.#player.previous());
+    }
+    if (this.#player.status === Constants.PLAYER_STATUSES.PLAYING ||
+      this.#player.status === Constants.PLAYER_STATUSES.PAUSED) {
+      this.#previousTrackTimer = setTimeout(() => {
+        this.#previousTrackTimer = null;
+      }, 3000);
+      return this.#player.seek(0);
+    }
     return utils.jsPromiseToKew(this.#player.previous());
   }
 }
