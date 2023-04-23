@@ -18,7 +18,7 @@
 				"string-format": "^2.0.0",
 				"v-conf": "^1.4.2",
 				"volumio-youtubei.js": "git+https://github.com/patrickkfkan/Volumio-YouTube.js.git#v0.2.1-b.3",
-				"yt-cast-receiver": "^1.0.0"
+				"yt-cast-receiver": "^1.0.1"
 			},
 			"devDependencies": {
 				"@types/fs-extra": "^8.1.2",
@@ -3545,9 +3545,9 @@
 			}
 		},
 		"node_modules/yt-cast-receiver": {
-			"version": "1.0.0",
-			"resolved": "https://registry.npmjs.org/yt-cast-receiver/-/yt-cast-receiver-1.0.0.tgz",
-			"integrity": "sha512-7RTub7+ezJeIoGoBZ97wiQaCahzDeL8dF7NHKehspiurZVWswMDpdOq8sIoQEMrOJRU0Ho5weTvXn20qjcg+Pg==",
+			"version": "1.0.1",
+			"resolved": "https://registry.npmjs.org/yt-cast-receiver/-/yt-cast-receiver-1.0.1.tgz",
+			"integrity": "sha512-Wy/mi8atUg/IwweKC2v0evI/lGjYjynzAO40IXSPpJZMNlKIQ5cfrwOeG4AOA8szAL56hI281HYpZudtIXz1Lg==",
 			"dependencies": {
 				"@patrickkfkan/peer-dial": "^0.1.1",
 				"@types/node-fetch": "^2.6.2",
@@ -6180,9 +6180,9 @@
 			}
 		},
 		"yt-cast-receiver": {
-			"version": "1.0.0",
-			"resolved": "https://registry.npmjs.org/yt-cast-receiver/-/yt-cast-receiver-1.0.0.tgz",
-			"integrity": "sha512-7RTub7+ezJeIoGoBZ97wiQaCahzDeL8dF7NHKehspiurZVWswMDpdOq8sIoQEMrOJRU0Ho5weTvXn20qjcg+Pg==",
+			"version": "1.0.1",
+			"resolved": "https://registry.npmjs.org/yt-cast-receiver/-/yt-cast-receiver-1.0.1.tgz",
+			"integrity": "sha512-Wy/mi8atUg/IwweKC2v0evI/lGjYjynzAO40IXSPpJZMNlKIQ5cfrwOeG4AOA8szAL56hI281HYpZudtIXz1Lg==",
 			"requires": {
 				"@patrickkfkan/peer-dial": "^0.1.1",
 				"@types/node-fetch": "^2.6.2",

@@ -58,6 +58,6 @@
 		"string-format": "^2.0.0",
 		"v-conf": "^1.4.2",
 		"volumio-youtubei.js": "git+https://github.com/patrickkfkan/Volumio-YouTube.js.git#v0.2.1-b.3",
-		"yt-cast-receiver": "^1.0.0"
+		"yt-cast-receiver": "^1.0.1"
 	}
 }
