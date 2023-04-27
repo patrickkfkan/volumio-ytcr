@@ -257,7 +257,7 @@ class ControllerYTCR {
             }
         });
         __classPrivateFieldGet(this, _ControllerYTCR_player, "f").on('state', async (states) => {
-            if (this.isCurrentService() && __classPrivateFieldGet(this, _ControllerYTCR_instances, "m", _ControllerYTCR_hasConnectedSenders).call(this)) {
+            if (this.isCurrentService()) {
                 const state = states.current;
                 __classPrivateFieldGet(this, _ControllerYTCR_logger, "f").debug('[ytcr] Received state change event from MPDPlayer:', state);
                 if (state.status === yt_cast_receiver_1.Constants.PLAYER_STATUSES.STOPPED || state.status === yt_cast_receiver_1.Constants.PLAYER_STATUSES.IDLE) {

@@ -252,7 +252,7 @@ class ControllerYTCR {
     });
 
     this.#player.on('state', async (states: { current: PlayerState, previous: PlayerState }) => {
-      if (this.isCurrentService() && this.#hasConnectedSenders()) {
+      if (this.isCurrentService()) {
         const state = states.current;
         this.#logger.debug('[ytcr] Received state change event from MPDPlayer:', state);
         if (state.status === Constants.PLAYER_STATUSES.STOPPED || state.status === Constants.PLAYER_STATUSES.IDLE) {
