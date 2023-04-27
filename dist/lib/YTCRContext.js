@@ -73,6 +73,9 @@ class YTCRContext {
             return defaultValue;
         }
     }
+    deleteConfigValue(key) {
+        __classPrivateFieldGet(this, _YTCRContext_pluginConfig, "f").delete(key);
+    }
     setConfigValue(key, value, json = false) {
         __classPrivateFieldGet(this, _YTCRContext_pluginConfig, "f").set(key, json ? JSON.stringify(value) : value);
     }

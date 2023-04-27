@@ -12,6 +12,7 @@ declare class YTCRContext {
     toast(type: string, message: string, title?: string): void;
     getDeviceInfo(): DeviceInfo;
     getConfigValue(key: string, defaultValue?: any, json?: boolean): any;
+    deleteConfigValue(key: string): void;
     setConfigValue(key: string, value: any, json?: boolean): void;
     getMpdPlugin(): any;
     getStateMachine(): any;

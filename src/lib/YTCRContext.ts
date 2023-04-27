@@ -74,6 +74,10 @@ class YTCRContext {
     }
   }
 
+  deleteConfigValue(key: string) {
+    this.#pluginConfig.delete(key);
+  }
+
   setConfigValue(key: string, value: any, json = false) {
     this.#pluginConfig.set(key, json ? JSON.stringify(value) : value);
   }

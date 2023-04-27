@@ -311,39 +311,14 @@ class ControllerYTCR {
     const bindToIf = data['bindToIf'].value;
 
     if (oldPort !== port || oldBindToIf !== bindToIf) {
-      if (this.#hasConnectedSenders()) {
-        const modalData: any = {
-          title: ytcr.getI18n('YTCR_CONFIGURATION'),
-          size: 'lg',
-          buttons: [
-            {
-              name: ytcr.getI18n('YTCR_NO'),
-              class: 'btn btn-warning'
-            },
-            {
-              name: ytcr.getI18n('YTCR_YES'),
-              class: 'btn btn-info',
-              emit: 'callMethod',
-              payload: {
-                'endpoint': 'music_service/ytcr',
-                'method': 'configConfirmSaveConnection',
-                'data': { port, bindToIf }
-              }
-            }
-          ]
-        };
-        const senders = this.#receiver.getConnectedSenders();
-        if (senders.length > 1) {
-          modalData.message = ytcr.getI18n('YTCR_CONF_RESTART_CONFIRM_M', senders[0].name, senders.length - 1);
+      this.#checkSendersAndPromptBeforeRestart(
+        this.configConfirmSaveConnection.bind(this, { port, bindToIf }),
+        {
+          'endpoint': 'music_service/ytcr',
+          'method': 'configConfirmSaveConnection',
+          'data': { port, bindToIf }
         }
-        else {
-          modalData.message = ytcr.getI18n('YTCR_CONF_RESTART_CONFIRM', senders[0].name);
-        }
-        this.#commandRouter.broadcastMessage('openModal', modalData);
-      }
-      else {
-        this.configConfirmSaveConnection({ port, bindToIf });
-      }
+      );
     }
     else {
       ytcr.toast('success', ytcr.getI18n('YTCR_SETTINGS_SAVED'));
@@ -388,6 +363,56 @@ class ControllerYTCR {
     }
 
     ytcr.toast('success', ytcr.getI18n('YTCR_SETTINGS_SAVED'));
+  }
+
+  configClearDataStore() {
+    this.#checkSendersAndPromptBeforeRestart(
+      this.configConfirmClearDataStore.bind(this),
+      {
+        'endpoint': 'music_service/ytcr',
+        'method': 'configConfirmClearDataStore'
+      }
+    );
+  }
+
+  configConfirmClearDataStore() {
+    this.#dataStore.clear();
+    this.restart().then(() => {
+      this.refreshUIConfig();
+      ytcr.toast('success', ytcr.getI18n('YTCR_RESTARTED'));
+    });
+  }
+
+  #checkSendersAndPromptBeforeRestart(onCheckPass: () => void, modalOnConfirmPayload: { endpoint: string, method: string, data?: Record<string, any> }) {
+    if (this.#hasConnectedSenders()) {
+      const modalData: any = {
+        title: ytcr.getI18n('YTCR_CONFIGURATION'),
+        size: 'lg',
+        buttons: [
+          {
+            name: ytcr.getI18n('YTCR_NO'),
+            class: 'btn btn-warning'
+          },
+          {
+            name: ytcr.getI18n('YTCR_YES'),
+            class: 'btn btn-info',
+            emit: 'callMethod',
+            payload: modalOnConfirmPayload
+          }
+        ]
+      };
+      const senders = this.#receiver.getConnectedSenders();
+      if (senders.length > 1) {
+        modalData.message = ytcr.getI18n('YTCR_CONF_RESTART_CONFIRM_M', senders[0].name, senders.length - 1);
+      }
+      else {
+        modalData.message = ytcr.getI18n('YTCR_CONF_RESTART_CONFIRM', senders[0].name);
+      }
+      this.#commandRouter.broadcastMessage('openModal', modalData);
+    }
+    else {
+      onCheckPass();
+    }
   }
 
   refreshUIConfig() {

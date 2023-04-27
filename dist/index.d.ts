@@ -9,6 +9,8 @@ declare class ControllerYTCR {
     configConfirmSaveConnection(data: any): void;
     configSaveI18n(data: any): void;
     configSaveOther(data: any): void;
+    configClearDataStore(): void;
+    configConfirmClearDataStore(): void;
     refreshUIConfig(): void;
     onStop(): any;
     restart(): any;

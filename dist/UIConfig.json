@@ -170,6 +170,20 @@
           "label": "TRANSLATE.YTCR_DEBUG",
           "doc": "TRANSLATE.YTCR_DEBUG_DESC",
           "value": false
+        },
+        {
+          "id": "clearDataStore",
+          "element": "button",
+          "label": "TRANSLATE.YTCR_CLEAR_DATA_STORE",
+          "doc": "TRANSLATE.YTCR_CLEAR_DATA_STORE_DESC",
+          "onClick": {
+              "type": "emit",
+              "message": "callMethod",
+              "data": {
+                  "endpoint": "music_service/ytcr",
+                  "method": "configClearDataStore"
+              }
+          }
         }
       ]
     }

@@ -17,6 +17,6 @@ export default class ReceiverDataStore extends DataStore {
   }
 
   clear() {
-    ytcr.setConfigValue(BUNDLE_KEY, null);
+    ytcr.deleteConfigValue(BUNDLE_KEY);
   }
 }

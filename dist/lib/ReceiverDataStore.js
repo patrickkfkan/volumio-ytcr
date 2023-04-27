@@ -17,7 +17,7 @@ class ReceiverDataStore extends yt_cast_receiver_1.DataStore {
         return bundle[key] || null;
     }
     clear() {
-        YTCRContext_js_1.default.setConfigValue(BUNDLE_KEY, null);
+        YTCRContext_js_1.default.deleteConfigValue(BUNDLE_KEY);
     }
 }
 exports.default = ReceiverDataStore;

@@ -36,7 +36,7 @@ var __classPrivateFieldGet = (this && this.__classPrivateFieldGet) || function (
 var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
-var _ControllerYTCR_instances, _ControllerYTCR_serviceName, _ControllerYTCR_context, _ControllerYTCR_config, _ControllerYTCR_commandRouter, _ControllerYTCR_volatileCallback, _ControllerYTCR_previousTrackTimer, _ControllerYTCR_logger, _ControllerYTCR_player, _ControllerYTCR_volumeControl, _ControllerYTCR_receiver, _ControllerYTCR_dataStore, _ControllerYTCR_getMpdConfig, _ControllerYTCR_hasConnectedSenders;
+var _ControllerYTCR_instances, _ControllerYTCR_serviceName, _ControllerYTCR_context, _ControllerYTCR_config, _ControllerYTCR_commandRouter, _ControllerYTCR_volatileCallback, _ControllerYTCR_previousTrackTimer, _ControllerYTCR_logger, _ControllerYTCR_player, _ControllerYTCR_volumeControl, _ControllerYTCR_receiver, _ControllerYTCR_dataStore, _ControllerYTCR_getMpdConfig, _ControllerYTCR_hasConnectedSenders, _ControllerYTCR_checkSendersAndPromptBeforeRestart;
 const yt_cast_receiver_1 = __importStar(require("yt-cast-receiver"));
 // eslint-disable-next-line @typescript-eslint/ban-ts-comment
 // @ts-ignore
@@ -301,39 +301,11 @@ class ControllerYTCR {
         const oldBindToIf = YTCRContext_js_1.default.getConfigValue('bindToIf', '');
         const bindToIf = data['bindToIf'].value;
         if (oldPort !== port || oldBindToIf !== bindToIf) {
-            if (__classPrivateFieldGet(this, _ControllerYTCR_instances, "m", _ControllerYTCR_hasConnectedSenders).call(this)) {
-                const modalData = {
-                    title: YTCRContext_js_1.default.getI18n('YTCR_CONFIGURATION'),
-                    size: 'lg',
-                    buttons: [
-                        {
-                            name: YTCRContext_js_1.default.getI18n('YTCR_NO'),
-                            class: 'btn btn-warning'
-                        },
-                        {
-                            name: YTCRContext_js_1.default.getI18n('YTCR_YES'),
-                            class: 'btn btn-info',
-                            emit: 'callMethod',
-                            payload: {
-                                'endpoint': 'music_service/ytcr',
-                                'method': 'configConfirmSaveConnection',
-                                'data': { port, bindToIf }
-                            }
-                        }
-                    ]
-                };
-                const senders = __classPrivateFieldGet(this, _ControllerYTCR_receiver, "f").getConnectedSenders();
-                if (senders.length > 1) {
-                    modalData.message = YTCRContext_js_1.default.getI18n('YTCR_CONF_RESTART_CONFIRM_M', senders[0].name, senders.length - 1);
-                }
-                else {
-                    modalData.message = YTCRContext_js_1.default.getI18n('YTCR_CONF_RESTART_CONFIRM', senders[0].name);
-                }
-                __classPrivateFieldGet(this, _ControllerYTCR_commandRouter, "f").broadcastMessage('openModal', modalData);
-            }
-            else {
-                this.configConfirmSaveConnection({ port, bindToIf });
-            }
+            __classPrivateFieldGet(this, _ControllerYTCR_instances, "m", _ControllerYTCR_checkSendersAndPromptBeforeRestart).call(this, this.configConfirmSaveConnection.bind(this, { port, bindToIf }), {
+                'endpoint': 'music_service/ytcr',
+                'method': 'configConfirmSaveConnection',
+                'data': { port, bindToIf }
+            });
         }
         else {
             YTCRContext_js_1.default.toast('success', YTCRContext_js_1.default.getI18n('YTCR_SETTINGS_SAVED'));
@@ -370,6 +342,19 @@ class ControllerYTCR {
             __classPrivateFieldGet(this, _ControllerYTCR_receiver, "f").enableAutoplayOnConnect(data['enableAutoplayOnConnect']);
         }
         YTCRContext_js_1.default.toast('success', YTCRContext_js_1.default.getI18n('YTCR_SETTINGS_SAVED'));
+    }
+    configClearDataStore() {
+        __classPrivateFieldGet(this, _ControllerYTCR_instances, "m", _ControllerYTCR_checkSendersAndPromptBeforeRestart).call(this, this.configConfirmClearDataStore.bind(this), {
+            'endpoint': 'music_service/ytcr',
+            'method': 'configConfirmClearDataStore'
+        });
+    }
+    configConfirmClearDataStore() {
+        __classPrivateFieldGet(this, _ControllerYTCR_dataStore, "f").clear();
+        this.restart().then(() => {
+            this.refreshUIConfig();
+            YTCRContext_js_1.default.toast('success', YTCRContext_js_1.default.getI18n('YTCR_RESTARTED'));
+        });
     }
     refreshUIConfig() {
         __classPrivateFieldGet(this, _ControllerYTCR_commandRouter, "f").getUIConfigOnPlugin('music_service', 'ytcr', {}).then((config) => {
@@ -485,6 +470,36 @@ _ControllerYTCR_serviceName = new WeakMap(), _ControllerYTCR_context = new WeakM
     };
 }, _ControllerYTCR_hasConnectedSenders = function _ControllerYTCR_hasConnectedSenders() {
     return __classPrivateFieldGet(this, _ControllerYTCR_receiver, "f")?.getConnectedSenders().length > 0 || false;
+}, _ControllerYTCR_checkSendersAndPromptBeforeRestart = function _ControllerYTCR_checkSendersAndPromptBeforeRestart(onCheckPass, modalOnConfirmPayload) {
+    if (__classPrivateFieldGet(this, _ControllerYTCR_instances, "m", _ControllerYTCR_hasConnectedSenders).call(this)) {
+        const modalData = {
+            title: YTCRContext_js_1.default.getI18n('YTCR_CONFIGURATION'),
+            size: 'lg',
+            buttons: [
+                {
+                    name: YTCRContext_js_1.default.getI18n('YTCR_NO'),
+                    class: 'btn btn-warning'
+                },
+                {
+                    name: YTCRContext_js_1.default.getI18n('YTCR_YES'),
+                    class: 'btn btn-info',
+                    emit: 'callMethod',
+                    payload: modalOnConfirmPayload
+                }
+            ]
+        };
+        const senders = __classPrivateFieldGet(this, _ControllerYTCR_receiver, "f").getConnectedSenders();
+        if (senders.length > 1) {
+            modalData.message = YTCRContext_js_1.default.getI18n('YTCR_CONF_RESTART_CONFIRM_M', senders[0].name, senders.length - 1);
+        }
+        else {
+            modalData.message = YTCRContext_js_1.default.getI18n('YTCR_CONF_RESTART_CONFIRM', senders[0].name);
+        }
+        __classPrivateFieldGet(this, _ControllerYTCR_commandRouter, "f").broadcastMessage('openModal', modalData);
+    }
+    else {
+        onCheckPass();
+    }
 };
 module.exports = ControllerYTCR;
 //# sourceMappingURL=index.js.map
