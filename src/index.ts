@@ -5,6 +5,7 @@ import libQ from 'kew';
 // eslint-disable-next-line @typescript-eslint/ban-ts-comment
 // @ts-ignore
 import vconf from 'v-conf';
+import i18nConfOptions from './config/i18n.json';
 import ytcr from './lib/YTCRContext.js';
 import Logger from './lib/Logger.js';
 import MPDPlayer, { ActionEvent, MPDPlayerError, VolumioState } from './lib/MPDPlayer.js';
@@ -73,6 +74,7 @@ class ControllerYTCR {
         const [ uiconf, pairingCode ] = configParams;
         const [ connectionUIConf,
           manualPairingUIConf,
+          i18nUIConf,
           otherUIConf ] = uiconf.sections;
         const receiverRunning = this.#receiver.status === Constants.STATUSES.RUNNING;
 
@@ -80,6 +82,10 @@ class ControllerYTCR {
         const enableAutoplayOnConnect = ytcr.getConfigValue('enableAutoplayOnConnect', true);
         const debug = ytcr.getConfigValue('debug', false);
         const bindToIf = ytcr.getConfigValue('bindToIf', '');
+        const i18n = {
+          region: ytcr.getConfigValue('region', 'US'),
+          language: ytcr.getConfigValue('language', 'en')
+        };
         const liveStreamQuality = ytcr.getConfigValue('liveStreamQuality', 'auto');
         const liveStreamQualityOptions = otherUIConf.content[0].options;
 
@@ -102,12 +108,19 @@ class ControllerYTCR {
 
         connectionUIConf.content[0].value = port;
         connectionUIConf.content[1].options = ifOpts;
+
         if (!receiverRunning) {
           manualPairingUIConf.content[0].value = ytcr.getI18n('YTCR_NO_CODE_NOT_RUNNING');
         }
         else {
           manualPairingUIConf.content[0].value = pairingCode || ytcr.getI18n('YTCR_NO_CODE_ERR');
         }
+
+        i18nUIConf.content[0].options = i18nConfOptions.region;
+        i18nUIConf.content[0].value = i18nConfOptions.region.find((r) => i18n.region === r.value);
+        i18nUIConf.content[1].options = i18nConfOptions.language;
+        i18nUIConf.content[1].value = i18nConfOptions.language.find((r) => i18n.language === r.value);
+
         otherUIConf.content[0].value = liveStreamQualityOptions.find((o: any) => o.value === liveStreamQuality);
         otherUIConf.content[1].value = enableAutoplayOnConnect;
         otherUIConf.content[2].value = debug;
@@ -344,6 +357,24 @@ class ControllerYTCR {
       this.refreshUIConfig();
       ytcr.toast('success', ytcr.getI18n('YTCR_RESTARTED'));
     });
+  }
+
+  configSaveI18n(data: any) {
+    const oldRegion = ytcr.getConfigValue('region');
+    const oldLanguage = ytcr.getConfigValue('language');
+    const region = data.region.value;
+    const language = data.language.value;
+
+    if (oldRegion !== region || oldLanguage !== language) {
+      ytcr.setConfigValue('region', region);
+      ytcr.setConfigValue('language', language);
+
+      if (this.#player) {
+        this.#player.videoLoader.refreshI18nConfig();
+      }
+    }
+
+    ytcr.toast('success', ytcr.getI18n('YTCR_SETTINGS_SAVED'));
   }
 
   configSaveOther(data: any) {

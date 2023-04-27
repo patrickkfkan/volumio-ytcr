@@ -22,9 +22,21 @@ var __importStar = (this && this.__importStar) || function (mod) {
     __setModuleDefault(result, mod);
     return result;
 };
+var __classPrivateFieldSet = (this && this.__classPrivateFieldSet) || function (receiver, state, value, kind, f) {
+    if (kind === "m") throw new TypeError("Private method is not writable");
+    if (kind === "a" && !f) throw new TypeError("Private accessor was defined without a setter");
+    if (typeof state === "function" ? receiver !== state || !f : !state.has(receiver)) throw new TypeError("Cannot write private member to an object whose class did not declare it");
+    return (kind === "a" ? f.call(receiver, value) : f ? f.value = value : state.set(receiver, value)), value;
+};
+var __classPrivateFieldGet = (this && this.__classPrivateFieldGet) || function (receiver, state, kind, f) {
+    if (kind === "a" && !f) throw new TypeError("Private accessor was defined without a getter");
+    if (typeof state === "function" ? receiver !== state || !f : !state.has(receiver)) throw new TypeError("Cannot read private member from an object whose class did not declare it");
+    return kind === "m" ? f : kind === "a" ? f.call(receiver) : f ? f.value : state.get(receiver);
+};
 var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
+var _VideoLoader_instances, _VideoLoader_innertube, _VideoLoader_logger, _VideoLoader_innertubeInitialClient, _VideoLoader_innertubeTVClient, _VideoLoader_init, _VideoLoader_getThumbnail, _VideoLoader_chooseFormat, _VideoLoader_parseStreamData, _VideoLoader_getStreamUrlFromHLS;
 Object.defineProperty(exports, "__esModule", { value: true });
 const volumio_youtubei_js_1 = __importStar(require("volumio-youtubei.js")), InnertubeLib = volumio_youtubei_js_1;
 const yt_cast_receiver_1 = require("yt-cast-receiver");
@@ -46,43 +58,49 @@ const BEST_AUDIO_FORMAT = {
     quality: 'best'
 };
 class VideoLoader {
-    #innertube;
-    #logger;
-    #innertubeInitialClient;
-    #innertubeTVClient;
     constructor(logger) {
-        this.#innertube = null;
-        this.#logger = logger;
+        _VideoLoader_instances.add(this);
+        _VideoLoader_innertube.set(this, void 0);
+        _VideoLoader_logger.set(this, void 0);
+        _VideoLoader_innertubeInitialClient.set(this, void 0);
+        _VideoLoader_innertubeTVClient.set(this, void 0);
+        __classPrivateFieldSet(this, _VideoLoader_innertube, null, "f");
+        __classPrivateFieldSet(this, _VideoLoader_logger, logger, "f");
     }
-    async #init() {
-        if (!this.#innertube) {
-            this.#innertube = await volumio_youtubei_js_1.default.create();
-            this.#innertubeInitialClient = { ...this.#innertube.session.context.client };
-            this.#innertubeTVClient = {
-                ...this.#innertube.session.context.client,
-                clientName: 'TVHTML5',
-                clientVersion: '7.20230405.08.01',
-                userAgent: 'Mozilla/5.0 (Windows NT 10.0; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/75.0.3770.142 Safari/537.36; SMART-TV; Tizen 4.0,gzip(gfe)'
-            };
+    refreshI18nConfig() {
+        const region = YTCRContext_js_1.default.getConfigValue('region', 'US');
+        const language = YTCRContext_js_1.default.getConfigValue('language', 'en');
+        if (__classPrivateFieldGet(this, _VideoLoader_innertube, "f")) {
+            __classPrivateFieldGet(this, _VideoLoader_innertube, "f").session.context.client.gl = region;
+            __classPrivateFieldGet(this, _VideoLoader_innertube, "f").session.context.client.hl = language;
         }
+        if (__classPrivateFieldGet(this, _VideoLoader_innertubeInitialClient, "f")) {
+            __classPrivateFieldGet(this, _VideoLoader_innertubeInitialClient, "f").gl = region;
+            __classPrivateFieldGet(this, _VideoLoader_innertubeInitialClient, "f").hl = language;
+        }
+        if (__classPrivateFieldGet(this, _VideoLoader_innertubeTVClient, "f")) {
+            __classPrivateFieldGet(this, _VideoLoader_innertubeTVClient, "f").gl = region;
+            __classPrivateFieldGet(this, _VideoLoader_innertubeTVClient, "f").hl = language;
+        }
+        __classPrivateFieldGet(this, _VideoLoader_logger, "f").debug(`[ytcr] VideoLoader i18n set to region: '${region}', language: '${language}'`);
     }
     async getInfo(video, abortSignal) {
-        if (!this.#innertube) {
-            await this.#init();
+        if (!__classPrivateFieldGet(this, _VideoLoader_innertube, "f")) {
+            await __classPrivateFieldGet(this, _VideoLoader_instances, "m", _VideoLoader_init).call(this);
         }
-        if (!this.#innertube) {
+        if (!__classPrivateFieldGet(this, _VideoLoader_innertube, "f")) {
             throw Error('VideoLoader not initialized');
         }
         const checkAbortSignal = () => {
             if (abortSignal.aborted) {
                 const msg = `VideoLoader.getInfo() aborted for video Id: ${video.id}`;
-                this.#logger.debug(`[ytcr] ${msg}.`);
+                __classPrivateFieldGet(this, _VideoLoader_logger, "f").debug(`[ytcr] ${msg}.`);
                 const abortError = Error(msg);
                 abortError.name = 'AbortError';
                 throw abortError;
             }
         };
-        this.#logger.debug(`[ytcr] VideoLoader.getInfo: ${video.id}`);
+        __classPrivateFieldGet(this, _VideoLoader_logger, "f").debug(`[ytcr] VideoLoader.getInfo: ${video.id}`);
         checkAbortSignal();
         const cpn = InnertubeLib.Utils.generateRandomString(16);
         // Prepare request payload
@@ -92,7 +110,7 @@ class VideoLoader {
             isMdxPlayback: true,
             playbackContext: {
                 contentPlaybackContext: {
-                    signatureTimestamp: this.#innertube.session.player?.sts || 0
+                    signatureTimestamp: __classPrivateFieldGet(this, _VideoLoader_innertube, "f").session.player?.sts || 0
                 }
             }
         };
@@ -106,10 +124,10 @@ class VideoLoader {
             payload.index = video.context.index;
         }
         // We are requesting data as a 'TV' client
-        this.#innertube.session.context.client = this.#innertubeTVClient;
+        __classPrivateFieldGet(this, _VideoLoader_innertube, "f").session.context.client = __classPrivateFieldGet(this, _VideoLoader_innertubeTVClient, "f");
         // Modify innertube's session context to include `ctt` param
         if (video.context?.ctt) {
-            this.#innertube.session.context.user = {
+            __classPrivateFieldGet(this, _VideoLoader_innertube, "f").session.context.user = {
                 enableSafetyMode: false,
                 lockedSafetyMode: false,
                 credentialTransferTokens: [
@@ -121,13 +139,13 @@ class VideoLoader {
             };
         }
         else {
-            delete this.#innertube.session.context.user?.credentialTransferTokens;
+            delete __classPrivateFieldGet(this, _VideoLoader_innertube, "f").session.context.user?.credentialTransferTokens;
         }
         try {
             // There are two endpoints we need to fetch data from:
             // 1. '/next': for metadata (title, channel for video, artist / album for music...)
             // 2. '/player': for streaming data
-            const nextResponse = await this.#innertube.actions.execute('/next', payload);
+            const nextResponse = await __classPrivateFieldGet(this, _VideoLoader_innertube, "f").actions.execute('/next', payload);
             checkAbortSignal();
             let basicInfo = null;
             // We cannot use innertube to parse `nextResponse`, because it doesn't
@@ -159,17 +177,17 @@ class VideoLoader {
             // Fetch response from '/player' endpoint.
             // But first revert to initial client in innertube context, otherwise livestreams will only have DASH manifest URL
             // - what we need is the HLS manifest URL
-            this.#innertube.session.context.client = { ...this.#innertubeInitialClient };
+            __classPrivateFieldGet(this, _VideoLoader_innertube, "f").session.context.client = { ...__classPrivateFieldGet(this, _VideoLoader_innertubeInitialClient, "f") };
             if (basicInfo.src === 'ytmusic') {
                 // For YouTube Music, it is also necessary to set `payload.client` to 'YTMUSIC'. Innertube will modify
                 // `context.client` with YouTube Music client info before submitting it to the '/player' endpoint.
                 payload.client = 'YTMUSIC';
             }
-            const playerResponse = await this.#innertube.actions.execute('/player', payload);
+            const playerResponse = await __classPrivateFieldGet(this, _VideoLoader_innertube, "f").actions.execute('/player', payload);
             checkAbortSignal();
             // Wrap it in innertube VideoInfo.
-            const innertubeVideoInfo = new InnertubeLib.YT.VideoInfo([playerResponse], this.#innertube.actions, this.#innertube.session.player, cpn);
-            const thumbnail = this.#getThumbnail(innertubeVideoInfo.basic_info.thumbnail);
+            const innertubeVideoInfo = new InnertubeLib.YT.VideoInfo([playerResponse], __classPrivateFieldGet(this, _VideoLoader_innertube, "f").actions, __classPrivateFieldGet(this, _VideoLoader_innertube, "f").session.player, cpn);
+            const thumbnail = __classPrivateFieldGet(this, _VideoLoader_instances, "m", _VideoLoader_getThumbnail).call(this, innertubeVideoInfo.basic_info.thumbnail);
             const isLive = !!innertubeVideoInfo.basic_info.is_live;
             // Retrieve stream info
             let playable = false;
@@ -179,7 +197,7 @@ class VideoLoader {
                 if (innertubeVideoInfo.has_trailer) {
                     const trailerInfo = innertubeVideoInfo.getTrailerInfo();
                     if (trailerInfo) {
-                        streamInfo = this.#chooseFormat(trailerInfo);
+                        streamInfo = __classPrivateFieldGet(this, _VideoLoader_instances, "m", _VideoLoader_chooseFormat).call(this, trailerInfo);
                     }
                 }
                 else {
@@ -187,12 +205,12 @@ class VideoLoader {
                 }
             }
             else if (!isLive) {
-                streamInfo = this.#chooseFormat(innertubeVideoInfo);
+                streamInfo = __classPrivateFieldGet(this, _VideoLoader_instances, "m", _VideoLoader_chooseFormat).call(this, innertubeVideoInfo);
             }
             else if (innertubeVideoInfo.streaming_data?.hls_manifest_url) {
                 const targetQuality = YTCRContext_js_1.default.getConfigValue('liveStreamQuality', 'auto');
                 streamInfo = {
-                    url: await this.#getStreamUrlFromHLS(innertubeVideoInfo.streaming_data.hls_manifest_url, targetQuality)
+                    url: await __classPrivateFieldGet(this, _VideoLoader_instances, "m", _VideoLoader_getStreamUrlFromHLS).call(this, innertubeVideoInfo.streaming_data.hls_manifest_url, targetQuality)
                 };
             }
             playable = !!streamInfo?.url;
@@ -215,77 +233,86 @@ class VideoLoader {
             if (error instanceof Error && error.name === 'AbortError') {
                 throw error;
             }
-            this.#logger.error(`[ytcr] Error in VideoLoader.getInfo(${video.id}):`, error);
+            __classPrivateFieldGet(this, _VideoLoader_logger, "f").error(`[ytcr] Error in VideoLoader.getInfo(${video.id}):`, error);
             return {
                 id: video.id,
                 errMsg: error instanceof Error ? error.message : '(Check logs for errors)'
             };
         }
     }
-    #getThumbnail(data) {
-        const url = data?.[0]?.url;
-        if (url?.startsWith('//')) {
-            return `https:${url}`;
-        }
-        return url;
-    }
-    #chooseFormat(videoInfo) {
-        if (!this.#innertube) {
-            throw Error('VideoLoader not initialized');
-        }
-        const format = videoInfo?.chooseFormat(BEST_AUDIO_FORMAT);
-        const streamUrl = format ? format.decipher(this.#innertube.session.player) : null;
-        const streamData = format ? { ...format, url: streamUrl } : null;
-        if (streamData) {
-            return this.#parseStreamData(streamData);
-        }
-        return null;
-    }
-    #parseStreamData(data) {
-        const audioBitrate = ITAG_TO_BITRATE[`${data.itag}`];
-        return {
-            url: data.url,
-            mimeType: data.mime_type,
-            bitrate: audioBitrate ? `${audioBitrate} kbps` : null,
-            sampleRate: data.audio_sample_rate,
-            channels: data.audio_channels
-        };
-    }
-    async #getStreamUrlFromHLS(manifestUrl, targetQuality) {
-        if (!targetQuality || targetQuality === 'auto') {
-            return manifestUrl;
-        }
-        const res = await (0, node_fetch_1.default)(manifestUrl);
-        const manifestContents = await res.text();
-        // Match Resolution and Url
-        const regex = /#EXT-X-STREAM-INF.*RESOLUTION=(\d+x\d+).*[\r\n](.+)/gm;
-        const playlistVariants = [];
-        // Modified from regex101's code generator :)
-        let m;
-        while ((m = regex.exec(manifestContents)) !== null) {
-            if (m.index === regex.lastIndex) {
-                regex.lastIndex++;
-            }
-            const variant = {};
-            playlistVariants.push(variant);
-            m.forEach((match, groupIndex) => {
-                if (groupIndex === 1) { // Resolution
-                    variant.quality = `${match.split('x')[1]}p`;
-                }
-                if (groupIndex === 2) {
-                    variant.url = match;
-                }
-            });
-        }
-        // Find matching variant or closest one that is lower than targetQuality
-        const targetQualityInt = parseInt(targetQuality);
-        const diffs = playlistVariants.map((variant) => ({
-            variant,
-            qualityDelta: targetQualityInt - parseInt(variant.quality)
-        }));
-        const closest = diffs.filter((v) => v.qualityDelta >= 0).sort((v1, v2) => v1.qualityDelta - v2.qualityDelta)[0];
-        return closest?.variant.url || playlistVariants[0]?.url || null;
-    }
 }
 exports.default = VideoLoader;
+_VideoLoader_innertube = new WeakMap(), _VideoLoader_logger = new WeakMap(), _VideoLoader_innertubeInitialClient = new WeakMap(), _VideoLoader_innertubeTVClient = new WeakMap(), _VideoLoader_instances = new WeakSet(), _VideoLoader_init = async function _VideoLoader_init() {
+    if (!__classPrivateFieldGet(this, _VideoLoader_innertube, "f")) {
+        __classPrivateFieldSet(this, _VideoLoader_innertube, await volumio_youtubei_js_1.default.create(), "f");
+        __classPrivateFieldSet(this, _VideoLoader_innertubeInitialClient, { ...__classPrivateFieldGet(this, _VideoLoader_innertube, "f").session.context.client }, "f");
+        __classPrivateFieldSet(this, _VideoLoader_innertubeTVClient, {
+            ...__classPrivateFieldGet(this, _VideoLoader_innertube, "f").session.context.client,
+            clientName: 'TVHTML5',
+            clientVersion: '7.20230405.08.01',
+            userAgent: 'Mozilla/5.0 (Windows NT 10.0; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/75.0.3770.142 Safari/537.36; SMART-TV; Tizen 4.0,gzip(gfe)'
+        }, "f");
+        this.refreshI18nConfig();
+    }
+}, _VideoLoader_getThumbnail = function _VideoLoader_getThumbnail(data) {
+    const url = data?.[0]?.url;
+    if (url?.startsWith('//')) {
+        return `https:${url}`;
+    }
+    return url;
+}, _VideoLoader_chooseFormat = function _VideoLoader_chooseFormat(videoInfo) {
+    if (!__classPrivateFieldGet(this, _VideoLoader_innertube, "f")) {
+        throw Error('VideoLoader not initialized');
+    }
+    const format = videoInfo?.chooseFormat(BEST_AUDIO_FORMAT);
+    const streamUrl = format ? format.decipher(__classPrivateFieldGet(this, _VideoLoader_innertube, "f").session.player) : null;
+    const streamData = format ? { ...format, url: streamUrl } : null;
+    if (streamData) {
+        return __classPrivateFieldGet(this, _VideoLoader_instances, "m", _VideoLoader_parseStreamData).call(this, streamData);
+    }
+    return null;
+}, _VideoLoader_parseStreamData = function _VideoLoader_parseStreamData(data) {
+    const audioBitrate = ITAG_TO_BITRATE[`${data.itag}`];
+    return {
+        url: data.url,
+        mimeType: data.mime_type,
+        bitrate: audioBitrate ? `${audioBitrate} kbps` : null,
+        sampleRate: data.audio_sample_rate,
+        channels: data.audio_channels
+    };
+}, _VideoLoader_getStreamUrlFromHLS = async function _VideoLoader_getStreamUrlFromHLS(manifestUrl, targetQuality) {
+    if (!targetQuality || targetQuality === 'auto') {
+        return manifestUrl;
+    }
+    const res = await (0, node_fetch_1.default)(manifestUrl);
+    const manifestContents = await res.text();
+    // Match Resolution and Url
+    const regex = /#EXT-X-STREAM-INF.*RESOLUTION=(\d+x\d+).*[\r\n](.+)/gm;
+    const playlistVariants = [];
+    // Modified from regex101's code generator :)
+    let m;
+    while ((m = regex.exec(manifestContents)) !== null) {
+        if (m.index === regex.lastIndex) {
+            regex.lastIndex++;
+        }
+        const variant = {};
+        playlistVariants.push(variant);
+        m.forEach((match, groupIndex) => {
+            if (groupIndex === 1) { // Resolution
+                variant.quality = `${match.split('x')[1]}p`;
+            }
+            if (groupIndex === 2) {
+                variant.url = match;
+            }
+        });
+    }
+    // Find matching variant or closest one that is lower than targetQuality
+    const targetQualityInt = parseInt(targetQuality);
+    const diffs = playlistVariants.map((variant) => ({
+        variant,
+        qualityDelta: targetQualityInt - parseInt(variant.quality)
+    }));
+    const closest = diffs.filter((v) => v.qualityDelta >= 0).sort((v1, v2) => v1.qualityDelta - v2.qualityDelta)[0];
+    return closest?.variant.url || playlistVariants[0]?.url || null;
+};
 //# sourceMappingURL=VideoLoader.js.map

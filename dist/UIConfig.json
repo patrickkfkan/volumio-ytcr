@@ -67,6 +67,40 @@
         }
       ]
     },
+    {
+      "id": "section_i18n",
+      "element": "section",
+      "label": "TRANSLATE.YTCR_SECTION_I18N",
+      "icon": "fa-globe",
+      "onSave": {
+        "type": "controller",
+        "endpoint": "music_service/ytcr",
+        "method": "configSaveI18n"
+      },
+      "saveButton": {
+        "label": "TRANSLATE.YTCR_SAVE",
+        "data": [
+          "region",
+          "language"
+        ]
+      },
+      "content": [
+        {
+          "id": "region",
+          "element": "select",
+          "label": "TRANSLATE.YTCR_REGION",
+          "value": {},
+          "options": []
+        },
+        {
+          "id": "language",
+          "element": "select",
+          "label": "TRANSLATE.YTCR_LANGUAGE",
+          "value": {},
+          "options": []
+        }
+      ]
+    },
 		{
       "id": "section_other",
       "element": "section",

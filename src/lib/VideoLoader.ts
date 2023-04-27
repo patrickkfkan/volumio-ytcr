@@ -72,7 +72,26 @@ export default class VideoLoader {
         clientVersion: '7.20230405.08.01',
         userAgent: 'Mozilla/5.0 (Windows NT 10.0; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/75.0.3770.142 Safari/537.36; SMART-TV; Tizen 4.0,gzip(gfe)'
       };
+      this.refreshI18nConfig();
     }
+  }
+
+  refreshI18nConfig() {
+    const region = ytcr.getConfigValue('region', 'US');
+    const language = ytcr.getConfigValue('language', 'en');
+    if (this.#innertube) {
+      this.#innertube.session.context.client.gl = region;
+      this.#innertube.session.context.client.hl = language;
+    }
+    if (this.#innertubeInitialClient) {
+      this.#innertubeInitialClient.gl = region;
+      this.#innertubeInitialClient.hl = language;
+    }
+    if (this.#innertubeTVClient) {
+      this.#innertubeTVClient.gl = region;
+      this.#innertubeTVClient.hl = language;
+    }
+    this.#logger.debug(`[ytcr] VideoLoader i18n set to region: '${region}', language: '${language}'`);
   }
 
   async getInfo(video: Video, abortSignal: AbortSignal): Promise<VideoInfo> {

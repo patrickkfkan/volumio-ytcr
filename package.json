@@ -6,8 +6,9 @@
 	"scripts": {
 		"build": "npm run prepare",
 		"prepare": "rm -rf dist && npx tsc -p tsconfig.json && bash fixup.sh",
-		"lint": "npx eslint ./src",
-		"lint:fix": "npx eslint ./src --fix"
+		"lint": "npx eslint ./src && npx eslint ./scripts",
+		"lint:fix": "npx eslint ./src --fix && npx eslint ./scripts --fix",
+		"i18n-conf": "npx ts-node -P ./tsconfig.json ./scripts/gen-i18n-conf.ts -o ./src/config/i18n.json"
 	},
 	"repository": {
 		"type": "git",

@@ -52,6 +52,7 @@ export default class MPDPlayer extends Player {
     wake(): void;
     resolveOnMPDStatusChanged(action: () => Promise<void>, subsystem: SubsystemName, resolveOn?: Record<string, string>): Promise<boolean>;
     getVolumioState(): Promise<VolumioState | null>;
+    get videoLoader(): VideoLoader;
     on(event: string | symbol, listener: (...args: any[]) => void): this;
     on(event: 'action', listener: (args: ActionEvent) => void): this;
     on(event: 'error', listener: (args: MPDPlayerError) => void): this;

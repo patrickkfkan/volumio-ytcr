@@ -22,9 +22,21 @@ var __importStar = (this && this.__importStar) || function (mod) {
     __setModuleDefault(result, mod);
     return result;
 };
+var __classPrivateFieldSet = (this && this.__classPrivateFieldSet) || function (receiver, state, value, kind, f) {
+    if (kind === "m") throw new TypeError("Private method is not writable");
+    if (kind === "a" && !f) throw new TypeError("Private accessor was defined without a setter");
+    if (typeof state === "function" ? receiver !== state || !f : !state.has(receiver)) throw new TypeError("Cannot write private member to an object whose class did not declare it");
+    return (kind === "a" ? f.call(receiver, value) : f ? f.value = value : state.set(receiver, value)), value;
+};
+var __classPrivateFieldGet = (this && this.__classPrivateFieldGet) || function (receiver, state, kind, f) {
+    if (kind === "a" && !f) throw new TypeError("Private accessor was defined without a getter");
+    if (typeof state === "function" ? receiver !== state || !f : !state.has(receiver)) throw new TypeError("Cannot read private member from an object whose class did not declare it");
+    return kind === "m" ? f : kind === "a" ? f.call(receiver) : f ? f.value : state.get(receiver);
+};
 var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
+var _ControllerYTCR_instances, _ControllerYTCR_serviceName, _ControllerYTCR_context, _ControllerYTCR_config, _ControllerYTCR_commandRouter, _ControllerYTCR_volatileCallback, _ControllerYTCR_previousTrackTimer, _ControllerYTCR_logger, _ControllerYTCR_player, _ControllerYTCR_volumeControl, _ControllerYTCR_receiver, _ControllerYTCR_dataStore, _ControllerYTCR_getMpdConfig, _ControllerYTCR_hasConnectedSenders;
 const yt_cast_receiver_1 = __importStar(require("yt-cast-receiver"));
 // eslint-disable-next-line @typescript-eslint/ban-ts-comment
 // @ts-ignore
@@ -32,6 +44,7 @@ const kew_1 = __importDefault(require("kew"));
 // eslint-disable-next-line @typescript-eslint/ban-ts-comment
 // @ts-ignore
 const v_conf_1 = __importDefault(require("v-conf"));
+const i18n_json_1 = __importDefault(require("./config/i18n.json"));
 const YTCRContext_js_1 = __importDefault(require("./lib/YTCRContext.js"));
 const Logger_js_1 = __importDefault(require("./lib/Logger.js"));
 const MPDPlayer_js_1 = __importDefault(require("./lib/MPDPlayer.js"));
@@ -57,41 +70,46 @@ const IDLE_STATE = {
     channels: undefined
 };
 class ControllerYTCR {
-    #serviceName = 'ytcr';
-    #context;
-    #config;
-    #commandRouter;
-    #volatileCallback;
-    #previousTrackTimer;
-    #logger;
-    #player;
-    #volumeControl;
-    #receiver;
-    #dataStore;
     constructor(context) {
-        this.#context = context;
-        this.#commandRouter = context.coreCommand;
-        this.#dataStore = new ReceiverDataStore_js_1.default();
-        this.#logger = new Logger_js_1.default(context.logger);
-        this.#previousTrackTimer = null;
-        this.#serviceName = 'ytcr';
+        _ControllerYTCR_instances.add(this);
+        _ControllerYTCR_serviceName.set(this, 'ytcr');
+        _ControllerYTCR_context.set(this, void 0);
+        _ControllerYTCR_config.set(this, void 0);
+        _ControllerYTCR_commandRouter.set(this, void 0);
+        _ControllerYTCR_volatileCallback.set(this, void 0);
+        _ControllerYTCR_previousTrackTimer.set(this, void 0);
+        _ControllerYTCR_logger.set(this, void 0);
+        _ControllerYTCR_player.set(this, void 0);
+        _ControllerYTCR_volumeControl.set(this, void 0);
+        _ControllerYTCR_receiver.set(this, void 0);
+        _ControllerYTCR_dataStore.set(this, void 0);
+        __classPrivateFieldSet(this, _ControllerYTCR_context, context, "f");
+        __classPrivateFieldSet(this, _ControllerYTCR_commandRouter, context.coreCommand, "f");
+        __classPrivateFieldSet(this, _ControllerYTCR_dataStore, new ReceiverDataStore_js_1.default(), "f");
+        __classPrivateFieldSet(this, _ControllerYTCR_logger, new Logger_js_1.default(context.logger), "f");
+        __classPrivateFieldSet(this, _ControllerYTCR_previousTrackTimer, null, "f");
+        __classPrivateFieldSet(this, _ControllerYTCR_serviceName, 'ytcr', "f");
     }
     getUIConfig() {
         const defer = kew_1.default.defer();
-        const lang_code = this.#commandRouter.sharedVars.get('language_code');
+        const lang_code = __classPrivateFieldGet(this, _ControllerYTCR_commandRouter, "f").sharedVars.get('language_code');
         const configPrepTasks = [
-            this.#commandRouter.i18nJson(`${__dirname}/i18n/strings_${lang_code}.json`, `${__dirname}/i18n/strings_en.json`, `${__dirname}/UIConfig.json`),
-            utils.jsPromiseToKew(PairingHelper_js_1.default.getManualPairingCode(this.#receiver, this.#logger))
+            __classPrivateFieldGet(this, _ControllerYTCR_commandRouter, "f").i18nJson(`${__dirname}/i18n/strings_${lang_code}.json`, `${__dirname}/i18n/strings_en.json`, `${__dirname}/UIConfig.json`),
+            utils.jsPromiseToKew(PairingHelper_js_1.default.getManualPairingCode(__classPrivateFieldGet(this, _ControllerYTCR_receiver, "f"), __classPrivateFieldGet(this, _ControllerYTCR_logger, "f")))
         ];
         kew_1.default.all(configPrepTasks)
             .then((configParams) => {
             const [uiconf, pairingCode] = configParams;
-            const [connectionUIConf, manualPairingUIConf, otherUIConf] = uiconf.sections;
-            const receiverRunning = this.#receiver.status === yt_cast_receiver_1.Constants.STATUSES.RUNNING;
+            const [connectionUIConf, manualPairingUIConf, i18nUIConf, otherUIConf] = uiconf.sections;
+            const receiverRunning = __classPrivateFieldGet(this, _ControllerYTCR_receiver, "f").status === yt_cast_receiver_1.Constants.STATUSES.RUNNING;
             const port = YTCRContext_js_1.default.getConfigValue('port', 8098);
             const enableAutoplayOnConnect = YTCRContext_js_1.default.getConfigValue('enableAutoplayOnConnect', true);
             const debug = YTCRContext_js_1.default.getConfigValue('debug', false);
             const bindToIf = YTCRContext_js_1.default.getConfigValue('bindToIf', '');
+            const i18n = {
+                region: YTCRContext_js_1.default.getConfigValue('region', 'US'),
+                language: YTCRContext_js_1.default.getConfigValue('language', 'en')
+            };
             const liveStreamQuality = YTCRContext_js_1.default.getConfigValue('liveStreamQuality', 'auto');
             const liveStreamQualityOptions = otherUIConf.content[0].options;
             const availableIf = utils.getNetworkInterfaces();
@@ -118,6 +136,10 @@ class ControllerYTCR {
             else {
                 manualPairingUIConf.content[0].value = pairingCode || YTCRContext_js_1.default.getI18n('YTCR_NO_CODE_ERR');
             }
+            i18nUIConf.content[0].options = i18n_json_1.default.region;
+            i18nUIConf.content[0].value = i18n_json_1.default.region.find((r) => i18n.region === r.value);
+            i18nUIConf.content[1].options = i18n_json_1.default.language;
+            i18nUIConf.content[1].value = i18n_json_1.default.language.find((r) => i18n.language === r.value);
             otherUIConf.content[0].value = liveStreamQualityOptions.find((o) => o.value === liveStreamQuality);
             otherUIConf.content[1].value = enableAutoplayOnConnect;
             otherUIConf.content[2].value = debug;
@@ -125,8 +147,8 @@ class ControllerYTCR {
             if (!receiverRunning) {
                 connectionStatus = YTCRContext_js_1.default.getI18n('YTCR_IDLE_NOT_RUNNING');
             }
-            else if (this.#hasConnectedSenders()) {
-                const senders = this.#receiver.getConnectedSenders();
+            else if (__classPrivateFieldGet(this, _ControllerYTCR_instances, "m", _ControllerYTCR_hasConnectedSenders).call(this)) {
+                const senders = __classPrivateFieldGet(this, _ControllerYTCR_receiver, "f").getConnectedSenders();
                 if (senders.length > 1) {
                     connectionStatus = YTCRContext_js_1.default.getI18n('YTCR_CONNECTED_MULTIPLE', senders[0].name, senders.length - 1);
                 }
@@ -141,29 +163,29 @@ class ControllerYTCR {
             defer.resolve(uiconf);
         })
             .fail((error) => {
-            this.#logger.error('[ytcr] Failed to retrieve YouTube Cast Receiver plugin configuration: ', error);
+            __classPrivateFieldGet(this, _ControllerYTCR_logger, "f").error('[ytcr] Failed to retrieve YouTube Cast Receiver plugin configuration: ', error);
             defer.reject(error);
         });
         return defer.promise;
     }
     onVolumioStart() {
-        const configFile = this.#commandRouter.pluginManager.getConfigurationFile(this.#context, 'config.json');
-        this.#config = new v_conf_1.default();
-        this.#config.loadFile(configFile);
+        const configFile = __classPrivateFieldGet(this, _ControllerYTCR_commandRouter, "f").pluginManager.getConfigurationFile(__classPrivateFieldGet(this, _ControllerYTCR_context, "f"), 'config.json');
+        __classPrivateFieldSet(this, _ControllerYTCR_config, new v_conf_1.default(), "f");
+        __classPrivateFieldGet(this, _ControllerYTCR_config, "f").loadFile(configFile);
         return kew_1.default.resolve();
     }
     onStart() {
         const defer = kew_1.default.defer();
-        YTCRContext_js_1.default.init(this.#context, this.#config);
-        this.#volumeControl = new VolumeControl_js_1.default(this.#commandRouter, this.#logger);
+        YTCRContext_js_1.default.init(__classPrivateFieldGet(this, _ControllerYTCR_context, "f"), __classPrivateFieldGet(this, _ControllerYTCR_config, "f"));
+        __classPrivateFieldSet(this, _ControllerYTCR_volumeControl, new VolumeControl_js_1.default(__classPrivateFieldGet(this, _ControllerYTCR_commandRouter, "f"), __classPrivateFieldGet(this, _ControllerYTCR_logger, "f")), "f");
         const playerConfig = {
-            mpd: this.#getMpdConfig(),
-            volumeControl: this.#volumeControl,
-            videoLoader: new VideoLoader_js_1.default(this.#logger)
+            mpd: __classPrivateFieldGet(this, _ControllerYTCR_instances, "m", _ControllerYTCR_getMpdConfig).call(this),
+            volumeControl: __classPrivateFieldGet(this, _ControllerYTCR_volumeControl, "f"),
+            videoLoader: new VideoLoader_js_1.default(__classPrivateFieldGet(this, _ControllerYTCR_logger, "f"))
         };
-        this.#player = new MPDPlayer_js_1.default(playerConfig);
+        __classPrivateFieldSet(this, _ControllerYTCR_player, new MPDPlayer_js_1.default(playerConfig), "f");
         const bindToIf = YTCRContext_js_1.default.getConfigValue('bindToIf', '');
-        const receiver = this.#receiver = new yt_cast_receiver_1.default(this.#player, {
+        const receiver = __classPrivateFieldSet(this, _ControllerYTCR_receiver, new yt_cast_receiver_1.default(__classPrivateFieldGet(this, _ControllerYTCR_player, "f"), {
             dial: {
                 port: YTCRContext_js_1.default.getConfigValue('port', 8098),
                 bindToInterfaces: utils.hasNetworkInterface(bindToIf) ? [bindToIf] : undefined
@@ -171,75 +193,75 @@ class ControllerYTCR {
             app: {
                 enableAutoplayOnConnect: YTCRContext_js_1.default.getConfigValue('enableAutoplayOnConnect', true)
             },
-            dataStore: this.#dataStore,
-            logger: this.#logger,
+            dataStore: __classPrivateFieldGet(this, _ControllerYTCR_dataStore, "f"),
+            logger: __classPrivateFieldGet(this, _ControllerYTCR_logger, "f"),
             logLevel: YTCRContext_js_1.default.getConfigValue('debug', false) ? yt_cast_receiver_1.Constants.LOG_LEVELS.DEBUG : yt_cast_receiver_1.Constants.LOG_LEVELS.INFO
-        });
+        }), "f");
         receiver.on('senderConnect', (sender) => {
-            this.#logger.info('[ytcr] ***** Sender connected *****');
+            __classPrivateFieldGet(this, _ControllerYTCR_logger, "f").info('[ytcr] ***** Sender connected *****');
             YTCRContext_js_1.default.toast('success', YTCRContext_js_1.default.getI18n('YTCR_CONNECTED', sender.name));
             this.refreshUIConfig();
         });
         receiver.on('senderDisconnect', (sender) => {
-            this.#logger.info('[ytcr] ***** Sender disconnected *****');
+            __classPrivateFieldGet(this, _ControllerYTCR_logger, "f").info('[ytcr] ***** Sender disconnected *****');
             YTCRContext_js_1.default.toast('warning', YTCRContext_js_1.default.getI18n('YTCR_DISCONNECTED', sender.name));
             this.refreshUIConfig();
         });
-        this.#player.on('action', async (action) => {
+        __classPrivateFieldGet(this, _ControllerYTCR_player, "f").on('action', async (action) => {
             if (action.name === 'play' && !this.isCurrentService()) {
-                this.#logger.debug('[ytcr] \'play\' command received while not being the current service.');
+                __classPrivateFieldGet(this, _ControllerYTCR_logger, "f").debug('[ytcr] \'play\' command received while not being the current service.');
                 // Stop any playback by the currently active service
-                this.#logger.debug('[ytcr] Stopping playback by current service...');
+                __classPrivateFieldGet(this, _ControllerYTCR_logger, "f").debug('[ytcr] Stopping playback by current service...');
                 try {
-                    await utils.kewToJSPromise(this.#commandRouter.volumioStop());
+                    await utils.kewToJSPromise(__classPrivateFieldGet(this, _ControllerYTCR_commandRouter, "f").volumioStop());
                 }
                 catch (error) {
-                    this.#logger.debug('[ytcr] An error occurred while stopping playback by current service: ', error);
-                    this.#logger.debug('[ytcr] Continuing anyway...');
+                    __classPrivateFieldGet(this, _ControllerYTCR_logger, "f").debug('[ytcr] An error occurred while stopping playback by current service: ', error);
+                    __classPrivateFieldGet(this, _ControllerYTCR_logger, "f").debug('[ytcr] Continuing anyway...');
                 }
                 // Unset any volatile state of currently active service
                 const sm = YTCRContext_js_1.default.getStateMachine();
                 if (sm.isVolatile) {
                     sm.unSetVolatile(); // Why isn't this async?!
                 }
-                this.#logger.debug('[ytcr] Setting ourselves as the current service...');
+                __classPrivateFieldGet(this, _ControllerYTCR_logger, "f").debug('[ytcr] Setting ourselves as the current service...');
                 this.setVolatile();
                 this.pushIdleState();
                 // Update volume on sender apps
-                await this.#player.notifyExternalStateChange();
+                await __classPrivateFieldGet(this, _ControllerYTCR_player, "f").notifyExternalStateChange();
             }
             else if (action.name === 'setVolume' && !this.isCurrentService()) {
-                this.#logger.debug('[ytcr] setVolume command received, but we are not the current service. Putting player to sleep...');
-                this.#player.sleep();
+                __classPrivateFieldGet(this, _ControllerYTCR_logger, "f").debug('[ytcr] setVolume command received, but we are not the current service. Putting player to sleep...');
+                __classPrivateFieldGet(this, _ControllerYTCR_player, "f").sleep();
             }
         });
         // Listen for changes in volume on Volumio's end
-        this.#volumeControl.registerVolumioVolumeChangeListener(async (volumioVol) => {
+        __classPrivateFieldGet(this, _ControllerYTCR_volumeControl, "f").registerVolumioVolumeChangeListener(async (volumioVol) => {
             const volume = {
                 level: volumioVol.vol,
                 muted: volumioVol.mute
             };
-            if (this.isCurrentService() && this.#hasConnectedSenders()) {
+            if (this.isCurrentService() && __classPrivateFieldGet(this, _ControllerYTCR_instances, "m", _ControllerYTCR_hasConnectedSenders).call(this)) {
                 // SetVolume() will trigger volumioupdatevolume() which will trigger the statemachine's
                 // PushState() - but old volatile state with outdated info will be used.
                 // So we push the latest state here to refresh the old volatile state.
-                this.#logger.debug('[ytcr] Captured change in Volumio\'s volume:', volumioVol);
+                __classPrivateFieldGet(this, _ControllerYTCR_logger, "f").debug('[ytcr] Captured change in Volumio\'s volume:', volumioVol);
                 await this.pushState();
-                await this.#volumeControl.setVolume(volume, true);
+                await __classPrivateFieldGet(this, _ControllerYTCR_volumeControl, "f").setVolume(volume, true);
                 await this.pushState(); // Do it once more
-                await this.#player.notifyExternalStateChange();
+                await __classPrivateFieldGet(this, _ControllerYTCR_player, "f").notifyExternalStateChange();
             }
             else {
                 // Even if not current service, we keep track of the updated volume
-                await this.#volumeControl.setVolume(volume, true);
+                await __classPrivateFieldGet(this, _ControllerYTCR_volumeControl, "f").setVolume(volume, true);
             }
         });
-        this.#player.on('state', async (states) => {
-            if (this.isCurrentService() && this.#hasConnectedSenders()) {
+        __classPrivateFieldGet(this, _ControllerYTCR_player, "f").on('state', async (states) => {
+            if (this.isCurrentService() && __classPrivateFieldGet(this, _ControllerYTCR_instances, "m", _ControllerYTCR_hasConnectedSenders).call(this)) {
                 const state = states.current;
-                this.#logger.debug('[ytcr] Received state change event from MPDPlayer:', state);
+                __classPrivateFieldGet(this, _ControllerYTCR_logger, "f").debug('[ytcr] Received state change event from MPDPlayer:', state);
                 if (state.status === yt_cast_receiver_1.Constants.PLAYER_STATUSES.STOPPED || state.status === yt_cast_receiver_1.Constants.PLAYER_STATUSES.IDLE) {
-                    this.#player.sleep();
+                    __classPrivateFieldGet(this, _ControllerYTCR_player, "f").sleep();
                     this.pushIdleState();
                 }
                 else {
@@ -247,17 +269,17 @@ class ControllerYTCR {
                 }
             }
         });
-        this.#player.on('error', (error) => {
+        __classPrivateFieldGet(this, _ControllerYTCR_player, "f").on('error', (error) => {
             YTCRContext_js_1.default.toast('error', error.message);
         });
         receiver.start().then(async () => {
-            await this.#volumeControl.init();
-            await this.#player.init();
-            this.#logger.debug('[ytcr] Receiver started.');
+            await __classPrivateFieldGet(this, _ControllerYTCR_volumeControl, "f").init();
+            await __classPrivateFieldGet(this, _ControllerYTCR_player, "f").init();
+            __classPrivateFieldGet(this, _ControllerYTCR_logger, "f").debug('[ytcr] Receiver started.');
             defer.resolve();
         })
             .catch((error) => {
-            this.#logger.error('[ytcr] Failed to start plugin:', error);
+            __classPrivateFieldGet(this, _ControllerYTCR_logger, "f").error('[ytcr] Failed to start plugin:', error);
             if (receiver.status === yt_cast_receiver_1.Constants.STATUSES.RUNNING) {
                 receiver.stop();
             }
@@ -269,14 +291,6 @@ class ControllerYTCR {
         });
         return defer.promise;
     }
-    #getMpdConfig() {
-        return {
-            path: '/run/mpd/socket'
-        };
-    }
-    #hasConnectedSenders() {
-        return this.#receiver?.getConnectedSenders().length > 0 || false;
-    }
     configSaveConnection(data) {
         const oldPort = YTCRContext_js_1.default.getConfigValue('port', 8098);
         const port = parseInt(data['port'], 10);
@@ -287,7 +301,7 @@ class ControllerYTCR {
         const oldBindToIf = YTCRContext_js_1.default.getConfigValue('bindToIf', '');
         const bindToIf = data['bindToIf'].value;
         if (oldPort !== port || oldBindToIf !== bindToIf) {
-            if (this.#hasConnectedSenders()) {
+            if (__classPrivateFieldGet(this, _ControllerYTCR_instances, "m", _ControllerYTCR_hasConnectedSenders).call(this)) {
                 const modalData = {
                     title: YTCRContext_js_1.default.getI18n('YTCR_CONFIGURATION'),
                     size: 'lg',
@@ -308,14 +322,14 @@ class ControllerYTCR {
                         }
                     ]
                 };
-                const senders = this.#receiver.getConnectedSenders();
+                const senders = __classPrivateFieldGet(this, _ControllerYTCR_receiver, "f").getConnectedSenders();
                 if (senders.length > 1) {
                     modalData.message = YTCRContext_js_1.default.getI18n('YTCR_CONF_RESTART_CONFIRM_M', senders[0].name, senders.length - 1);
                 }
                 else {
                     modalData.message = YTCRContext_js_1.default.getI18n('YTCR_CONF_RESTART_CONFIRM', senders[0].name);
                 }
-                this.#commandRouter.broadcastMessage('openModal', modalData);
+                __classPrivateFieldGet(this, _ControllerYTCR_commandRouter, "f").broadcastMessage('openModal', modalData);
             }
             else {
                 this.configConfirmSaveConnection({ port, bindToIf });
@@ -326,41 +340,55 @@ class ControllerYTCR {
         }
     }
     configConfirmSaveConnection(data) {
-        this.#config.set('port', data['port']);
-        this.#config.set('bindToIf', data['bindToIf']);
+        __classPrivateFieldGet(this, _ControllerYTCR_config, "f").set('port', data['port']);
+        __classPrivateFieldGet(this, _ControllerYTCR_config, "f").set('bindToIf', data['bindToIf']);
         this.restart().then(() => {
             this.refreshUIConfig();
             YTCRContext_js_1.default.toast('success', YTCRContext_js_1.default.getI18n('YTCR_RESTARTED'));
         });
     }
+    configSaveI18n(data) {
+        const oldRegion = YTCRContext_js_1.default.getConfigValue('region');
+        const oldLanguage = YTCRContext_js_1.default.getConfigValue('language');
+        const region = data.region.value;
+        const language = data.language.value;
+        if (oldRegion !== region || oldLanguage !== language) {
+            YTCRContext_js_1.default.setConfigValue('region', region);
+            YTCRContext_js_1.default.setConfigValue('language', language);
+            if (__classPrivateFieldGet(this, _ControllerYTCR_player, "f")) {
+                __classPrivateFieldGet(this, _ControllerYTCR_player, "f").videoLoader.refreshI18nConfig();
+            }
+        }
+        YTCRContext_js_1.default.toast('success', YTCRContext_js_1.default.getI18n('YTCR_SETTINGS_SAVED'));
+    }
     configSaveOther(data) {
-        this.#config.set('liveStreamQuality', data['liveStreamQuality'].value);
-        this.#config.set('enableAutoplayOnConnect', data['enableAutoplayOnConnect']);
-        this.#config.set('debug', data['debug']);
-        if (this.#receiver) {
-            this.#receiver.setLogLevel(data['debug'] ? yt_cast_receiver_1.Constants.LOG_LEVELS.DEBUG : yt_cast_receiver_1.Constants.LOG_LEVELS.INFO);
-            this.#receiver.enableAutoplayOnConnect(data['enableAutoplayOnConnect']);
+        __classPrivateFieldGet(this, _ControllerYTCR_config, "f").set('liveStreamQuality', data['liveStreamQuality'].value);
+        __classPrivateFieldGet(this, _ControllerYTCR_config, "f").set('enableAutoplayOnConnect', data['enableAutoplayOnConnect']);
+        __classPrivateFieldGet(this, _ControllerYTCR_config, "f").set('debug', data['debug']);
+        if (__classPrivateFieldGet(this, _ControllerYTCR_receiver, "f")) {
+            __classPrivateFieldGet(this, _ControllerYTCR_receiver, "f").setLogLevel(data['debug'] ? yt_cast_receiver_1.Constants.LOG_LEVELS.DEBUG : yt_cast_receiver_1.Constants.LOG_LEVELS.INFO);
+            __classPrivateFieldGet(this, _ControllerYTCR_receiver, "f").enableAutoplayOnConnect(data['enableAutoplayOnConnect']);
         }
         YTCRContext_js_1.default.toast('success', YTCRContext_js_1.default.getI18n('YTCR_SETTINGS_SAVED'));
     }
     refreshUIConfig() {
-        this.#commandRouter.getUIConfigOnPlugin('music_service', 'ytcr', {}).then((config) => {
-            this.#commandRouter.broadcastMessage('pushUiConfig', config);
+        __classPrivateFieldGet(this, _ControllerYTCR_commandRouter, "f").getUIConfigOnPlugin('music_service', 'ytcr', {}).then((config) => {
+            __classPrivateFieldGet(this, _ControllerYTCR_commandRouter, "f").broadcastMessage('pushUiConfig', config);
         });
     }
     onStop() {
         const defer = kew_1.default.defer();
-        this.#receiver.removeAllListeners();
-        this.#receiver.stop().then(async () => {
-            this.#logger.debug('[ytcr] Receiver stopped');
+        __classPrivateFieldGet(this, _ControllerYTCR_receiver, "f").removeAllListeners();
+        __classPrivateFieldGet(this, _ControllerYTCR_receiver, "f").stop().then(async () => {
+            __classPrivateFieldGet(this, _ControllerYTCR_logger, "f").debug('[ytcr] Receiver stopped');
             this.unsetVolatile();
-            this.#volumeControl.unregisterVolumioVolumeChangeListener();
-            await this.#player.destroy();
+            __classPrivateFieldGet(this, _ControllerYTCR_volumeControl, "f").unregisterVolumioVolumeChangeListener();
+            await __classPrivateFieldGet(this, _ControllerYTCR_player, "f").destroy();
             YTCRContext_js_1.default.reset();
             defer.resolve();
         })
             .catch((error) => {
-            this.#logger.error('[ytcr] Failed to stop receiver:', error);
+            __classPrivateFieldGet(this, _ControllerYTCR_logger, "f").error('[ytcr] Failed to stop receiver:', error);
             defer.reject(error);
         });
         return defer.promise;
@@ -374,13 +402,13 @@ class ControllerYTCR {
         return ['config.json'];
     }
     setVolatile() {
-        if (!this.#volatileCallback) {
-            this.#volatileCallback = this.onUnsetVolatile.bind(this);
+        if (!__classPrivateFieldGet(this, _ControllerYTCR_volatileCallback, "f")) {
+            __classPrivateFieldSet(this, _ControllerYTCR_volatileCallback, this.onUnsetVolatile.bind(this), "f");
         }
         if (!this.isCurrentService()) {
             YTCRContext_js_1.default.getStateMachine().setVolatile({
-                service: this.#serviceName,
-                callback: this.#volatileCallback
+                service: __classPrivateFieldGet(this, _ControllerYTCR_serviceName, "f"),
+                callback: __classPrivateFieldGet(this, _ControllerYTCR_volatileCallback, "f")
             });
             YTCRContext_js_1.default.getMpdPlugin().ignoreUpdate(true);
             YTCRContext_js_1.default.getStateMachine().setConsumeUpdateService(undefined);
@@ -392,64 +420,71 @@ class ControllerYTCR {
     async onUnsetVolatile() {
         this.pushIdleState();
         YTCRContext_js_1.default.getMpdPlugin().ignoreUpdate(false);
-        return this.#player.stop();
+        return __classPrivateFieldGet(this, _ControllerYTCR_player, "f").stop();
     }
     pushIdleState() {
-        this.#logger.debug('[ytcr] Pushing idle state...');
+        __classPrivateFieldGet(this, _ControllerYTCR_logger, "f").debug('[ytcr] Pushing idle state...');
         // Need to first push empty state with pause status first so the empty volatileState gets registered
         // By statemachine.
-        this.#commandRouter.servicePushState(Object.assign(IDLE_STATE, { status: 'pause' }), this.#serviceName);
+        __classPrivateFieldGet(this, _ControllerYTCR_commandRouter, "f").servicePushState(Object.assign(IDLE_STATE, { status: 'pause' }), __classPrivateFieldGet(this, _ControllerYTCR_serviceName, "f"));
         // Then push empty state with stop status
-        this.#commandRouter.servicePushState(IDLE_STATE, this.#serviceName);
+        __classPrivateFieldGet(this, _ControllerYTCR_commandRouter, "f").servicePushState(IDLE_STATE, __classPrivateFieldGet(this, _ControllerYTCR_serviceName, "f"));
     }
     async pushState(state) {
-        const volumioState = state || await this.#player.getVolumioState();
+        const volumioState = state || await __classPrivateFieldGet(this, _ControllerYTCR_player, "f").getVolumioState();
         if (volumioState) {
-            this.#logger.debug('[ytcr] pushState(): ', volumioState);
-            this.#commandRouter.servicePushState(volumioState, this.#serviceName);
+            __classPrivateFieldGet(this, _ControllerYTCR_logger, "f").debug('[ytcr] pushState(): ', volumioState);
+            __classPrivateFieldGet(this, _ControllerYTCR_commandRouter, "f").servicePushState(volumioState, __classPrivateFieldGet(this, _ControllerYTCR_serviceName, "f"));
         }
     }
     isCurrentService() {
         // Check what is the current Volumio service
-        const currentstate = this.#commandRouter.volumioGetState();
-        if (currentstate !== undefined && currentstate.service !== undefined && currentstate.service !== this.#serviceName) {
+        const currentstate = __classPrivateFieldGet(this, _ControllerYTCR_commandRouter, "f").volumioGetState();
+        if (currentstate !== undefined && currentstate.service !== undefined && currentstate.service !== __classPrivateFieldGet(this, _ControllerYTCR_serviceName, "f")) {
             return false;
         }
         return true;
     }
     stop() {
-        return utils.jsPromiseToKew(this.#player.stop());
+        return utils.jsPromiseToKew(__classPrivateFieldGet(this, _ControllerYTCR_player, "f").stop());
     }
     play() {
-        return utils.jsPromiseToKew(this.#player.resume());
+        return utils.jsPromiseToKew(__classPrivateFieldGet(this, _ControllerYTCR_player, "f").resume());
     }
     pause() {
-        return utils.jsPromiseToKew(this.#player.pause());
+        return utils.jsPromiseToKew(__classPrivateFieldGet(this, _ControllerYTCR_player, "f").pause());
     }
     resume() {
-        return utils.jsPromiseToKew(this.#player.resume());
+        return utils.jsPromiseToKew(__classPrivateFieldGet(this, _ControllerYTCR_player, "f").resume());
     }
     seek(position) {
-        return utils.jsPromiseToKew(this.#player.seek(Math.round(position / 1000)));
+        return utils.jsPromiseToKew(__classPrivateFieldGet(this, _ControllerYTCR_player, "f").seek(Math.round(position / 1000)));
     }
     next() {
-        return utils.jsPromiseToKew(this.#player.next());
+        return utils.jsPromiseToKew(__classPrivateFieldGet(this, _ControllerYTCR_player, "f").next());
     }
     previous() {
-        if (this.#previousTrackTimer) {
-            clearTimeout(this.#previousTrackTimer);
-            this.#previousTrackTimer = null;
-            return utils.jsPromiseToKew(this.#player.previous());
+        if (__classPrivateFieldGet(this, _ControllerYTCR_previousTrackTimer, "f")) {
+            clearTimeout(__classPrivateFieldGet(this, _ControllerYTCR_previousTrackTimer, "f"));
+            __classPrivateFieldSet(this, _ControllerYTCR_previousTrackTimer, null, "f");
+            return utils.jsPromiseToKew(__classPrivateFieldGet(this, _ControllerYTCR_player, "f").previous());
         }
-        if (this.#player.status === yt_cast_receiver_1.Constants.PLAYER_STATUSES.PLAYING ||
-            this.#player.status === yt_cast_receiver_1.Constants.PLAYER_STATUSES.PAUSED) {
-            this.#previousTrackTimer = setTimeout(() => {
-                this.#previousTrackTimer = null;
-            }, 3000);
-            return this.#player.seek(0);
+        if (__classPrivateFieldGet(this, _ControllerYTCR_player, "f").status === yt_cast_receiver_1.Constants.PLAYER_STATUSES.PLAYING ||
+            __classPrivateFieldGet(this, _ControllerYTCR_player, "f").status === yt_cast_receiver_1.Constants.PLAYER_STATUSES.PAUSED) {
+            __classPrivateFieldSet(this, _ControllerYTCR_previousTrackTimer, setTimeout(() => {
+                __classPrivateFieldSet(this, _ControllerYTCR_previousTrackTimer, null, "f");
+            }, 3000), "f");
+            return __classPrivateFieldGet(this, _ControllerYTCR_player, "f").seek(0);
         }
-        return utils.jsPromiseToKew(this.#player.previous());
+        return utils.jsPromiseToKew(__classPrivateFieldGet(this, _ControllerYTCR_player, "f").previous());
     }
 }
+_ControllerYTCR_serviceName = new WeakMap(), _ControllerYTCR_context = new WeakMap(), _ControllerYTCR_config = new WeakMap(), _ControllerYTCR_commandRouter = new WeakMap(), _ControllerYTCR_volatileCallback = new WeakMap(), _ControllerYTCR_previousTrackTimer = new WeakMap(), _ControllerYTCR_logger = new WeakMap(), _ControllerYTCR_player = new WeakMap(), _ControllerYTCR_volumeControl = new WeakMap(), _ControllerYTCR_receiver = new WeakMap(), _ControllerYTCR_dataStore = new WeakMap(), _ControllerYTCR_instances = new WeakSet(), _ControllerYTCR_getMpdConfig = function _ControllerYTCR_getMpdConfig() {
+    return {
+        path: '/run/mpd/socket'
+    };
+}, _ControllerYTCR_hasConnectedSenders = function _ControllerYTCR_hasConnectedSenders() {
+    return __classPrivateFieldGet(this, _ControllerYTCR_receiver, "f")?.getConnectedSenders().length > 0 || false;
+};
 module.exports = ControllerYTCR;
 //# sourceMappingURL=index.js.map

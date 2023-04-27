@@ -20,6 +20,7 @@ export interface VideoInfo extends BasicInfo {
 export default class VideoLoader {
     #private;
     constructor(logger: Logger);
+    refreshI18nConfig(): void;
     getInfo(video: Video, abortSignal: AbortSignal): Promise<VideoInfo>;
 }
 export {};

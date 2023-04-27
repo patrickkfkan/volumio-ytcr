@@ -486,6 +486,10 @@ export default class MPDPlayer extends Player {
     return state;
   }
 
+  get videoLoader(): VideoLoader {
+    return this.#videoLoader;
+  }
+
   on(event: string | symbol, listener: (...args: any[]) => void): this;
   on(event: 'action', listener: (args: ActionEvent) => void): this;
   on(event: 'error', listener: (args: MPDPlayerError) => void): this;
