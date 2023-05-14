@@ -270,7 +270,16 @@ class ControllerYTCR {
         this.#logger.debug('[ytcr] Received state change event from MPDPlayer:', state);
         if (state.status === Constants.PLAYER_STATUSES.STOPPED || state.status === Constants.PLAYER_STATUSES.IDLE) {
           this.#player.sleep();
-          this.pushIdleState();
+          if (state.status === Constants.PLAYER_STATUSES.STOPPED && this.#player.queue.videoIds.length > 0) {
+            // If queue is not empty, it is possible that we are just moving to another song. In this case, we don't push
+            // Idle state to avoid ugly flickering of the screen caused by the temporary Idle state.
+            const currentVolumioState = ytcr.getStateMachine().getState() as VolumioState;
+            currentVolumioState.status = 'stop';
+            await this.pushState(currentVolumioState);
+          }
+          else {
+            this.pushIdleState();
+          }
         }
         else {
           await this.pushState();

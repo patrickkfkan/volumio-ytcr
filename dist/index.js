@@ -275,7 +275,16 @@ class ControllerYTCR {
                 __classPrivateFieldGet(this, _ControllerYTCR_logger, "f").debug('[ytcr] Received state change event from MPDPlayer:', state);
                 if (state.status === yt_cast_receiver_1.Constants.PLAYER_STATUSES.STOPPED || state.status === yt_cast_receiver_1.Constants.PLAYER_STATUSES.IDLE) {
                     __classPrivateFieldGet(this, _ControllerYTCR_player, "f").sleep();
-                    this.pushIdleState();
+                    if (state.status === yt_cast_receiver_1.Constants.PLAYER_STATUSES.STOPPED && __classPrivateFieldGet(this, _ControllerYTCR_player, "f").queue.videoIds.length > 0) {
+                        // If queue is not empty, it is possible that we are just moving to another song. In this case, we don't push
+                        // Idle state to avoid ugly flickering of the screen caused by the temporary Idle state.
+                        const currentVolumioState = YTCRContext_js_1.default.getStateMachine().getState();
+                        currentVolumioState.status = 'stop';
+                        await this.pushState(currentVolumioState);
+                    }
+                    else {
+                        this.pushIdleState();
+                    }
                 }
                 else {
                     await this.pushState();
