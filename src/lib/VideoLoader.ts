@@ -37,9 +37,11 @@ export interface VideoInfo extends BasicInfo {
   thumbnail?: string;
   isLive?: boolean;
   streamUrl?: string | null;
+  duration?: number;
   bitrate?: string;
   samplerate?: number;
   channels?: number;
+  streamExpires?: Date;
 }
 
 interface StreamInfo {
@@ -257,9 +259,11 @@ export default class VideoLoader {
         thumbnail,
         isLive,
         streamUrl: streamInfo?.url,
+        duration: innertubeVideoInfo.basic_info.duration || 0,
         bitrate: streamInfo?.bitrate || undefined,
         samplerate: streamInfo?.sampleRate,
-        channels: streamInfo?.channels
+        channels: streamInfo?.channels,
+        streamExpires: innertubeVideoInfo.streaming_data?.expires
       };
 
     }

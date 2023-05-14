@@ -224,9 +224,11 @@ class VideoLoader {
                 thumbnail,
                 isLive,
                 streamUrl: streamInfo?.url,
+                duration: innertubeVideoInfo.basic_info.duration || 0,
                 bitrate: streamInfo?.bitrate || undefined,
                 samplerate: streamInfo?.sampleRate,
-                channels: streamInfo?.channels
+                channels: streamInfo?.channels,
+                streamExpires: innertubeVideoInfo.streaming_data?.expires
             };
         }
         catch (error) {
