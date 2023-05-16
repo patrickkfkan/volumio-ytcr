@@ -21,6 +21,7 @@ export interface MPDPlayerConfig {
   mpd: MPD.Config;
   volumeControl: VolumeControl;
   videoLoader: VideoLoader;
+  prefetch: boolean;
 }
 
 export interface MPDPlayerVideoInfo extends VideoInfo {
@@ -81,7 +82,7 @@ export default class MPDPlayer extends Player {
   #volumeControl: VolumeControl;
   #videoLoader: VideoLoader;
   #loadVideoAbortController: AbortController | null;
-  #videoPrefetcher: VideoPrefetcher;
+  #videoPrefetcher: VideoPrefetcher | null;
 
   #subsystemEventEmitter: MPDSubsystemEventEmitter | null;
   #destroyed: boolean;
@@ -99,7 +100,7 @@ export default class MPDPlayer extends Player {
 
     this.#destroyed = false;
     this.#videoLoader = this.#config.videoLoader;
-    this.#videoPrefetcher = new VideoPrefetcher(this.#videoLoader, this.logger);
+    this.#videoPrefetcher = this.#config.prefetch ? new VideoPrefetcher(this.#videoLoader, this.logger) : null;
     this.#volumeControl = this.#config.volumeControl;
 
     const externalMPDEventListener = this.#handleExternalMPDEvent.bind(this);
@@ -365,8 +366,28 @@ export default class MPDPlayer extends Player {
     return mpdStatus.duration || 0;
   }
 
+  async enablePrefetch(value: boolean) {
+    if (value === this.#config.prefetch) {
+      return;
+    }
+
+    if (value) {
+      this.#videoPrefetcher = new VideoPrefetcher(this.#videoLoader, this.logger);
+      if ((this.status === Constants.PLAYER_STATUSES.PAUSED || this.status === Constants.PLAYER_STATUSES.PLAYING) && this.#mpdClient) {
+        const mpdStatus = await this.#mpdClient.api.status.get<MPDStatus>();
+        this.#checkAndStartPrefetch(mpdStatus);
+      }
+    }
+    else {
+      await this.#clearPrefetch();
+      this.#videoPrefetcher = null;
+    }
+
+    this.#config.prefetch = value;
+  }
+
   #checkAndStartPrefetch(mpdStatus: MPDStatus) {
-    if (!this.#currentVideoInfo || this.#currentVideoInfo.isLive) {
+    if (!this.#videoPrefetcher || !this.#currentVideoInfo || this.#currentVideoInfo.isLive) {
       return;
     }
     if (this.#prefetchedAndQueuedVideoInfo || this.#videoPrefetcher.isPrefetching()) {
@@ -385,6 +406,10 @@ export default class MPDPlayer extends Player {
   }
 
   async #cancelPrefetch(abortIfPrefetching = false, clearIfPrefetched = false) {
+    if (!this.#videoPrefetcher) { // Prefetch disabled
+      return;
+    }
+
     this.logger.debug(`[ytcr] Cancelling prefetch (abortIfPrefetching: ${abortIfPrefetching}, clearIfPrefetched: ${clearIfPrefetched})`);
 
     if (!this.#videoPrefetcher.isPrefetching() || abortIfPrefetching) {

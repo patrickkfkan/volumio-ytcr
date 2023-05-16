@@ -87,8 +87,9 @@ class ControllerYTCR {
           region: ytcr.getConfigValue('region', 'US'),
           language: ytcr.getConfigValue('language', 'en')
         };
+        const prefetch = ytcr.getConfigValue('prefetch', true);
         const liveStreamQuality = ytcr.getConfigValue('liveStreamQuality', 'auto');
-        const liveStreamQualityOptions = otherUIConf.content[0].options;
+        const liveStreamQualityOptions = otherUIConf.content[1].options;
 
         const availableIf = utils.getNetworkInterfaces();
         const ifOpts = [ {
@@ -122,9 +123,10 @@ class ControllerYTCR {
         i18nUIConf.content[1].options = i18nConfOptions.language;
         i18nUIConf.content[1].value = i18nConfOptions.language.find((r) => i18n.language === r.value);
 
-        otherUIConf.content[0].value = liveStreamQualityOptions.find((o: any) => o.value === liveStreamQuality);
-        otherUIConf.content[1].value = enableAutoplayOnConnect;
-        otherUIConf.content[2].options = [
+        otherUIConf.content[0].value = prefetch;
+        otherUIConf.content[1].value = liveStreamQualityOptions.find((o: any) => o.value === liveStreamQuality);
+        otherUIConf.content[2].value = enableAutoplayOnConnect;
+        otherUIConf.content[3].options = [
           {
             value: Constants.RESET_PLAYER_ON_DISCONNECT_POLICIES.ALL_DISCONNECTED,
             label: ytcr.getI18n('YTCR_RESET_PLAYER_ON_DISCONNECT_ALWAYS')
@@ -134,8 +136,8 @@ class ControllerYTCR {
             label: ytcr.getI18n('YTCR_RESET_PLAYER_ON_DISCONNECT_EXPLICIT')
           }
         ];
-        otherUIConf.content[2].value = otherUIConf.content[2].options.find((o: any) => o.value === resetPlayerOnDisconnect);
-        otherUIConf.content[3].value = debug;
+        otherUIConf.content[3].value = otherUIConf.content[3].options.find((o: any) => o.value === resetPlayerOnDisconnect);
+        otherUIConf.content[4].value = debug;
 
         let connectionStatus;
         if (!receiverRunning) {
@@ -182,7 +184,8 @@ class ControllerYTCR {
     const playerConfig = {
       mpd: this.#getMpdConfig(),
       volumeControl: this.#volumeControl,
-      videoLoader: new VideoLoader(this.#logger)
+      videoLoader: new VideoLoader(this.#logger),
+      prefetch: ytcr.getConfigValue('prefetch', true)
     };
     this.#player = new MPDPlayer(playerConfig);
 
@@ -374,7 +377,8 @@ class ControllerYTCR {
     ytcr.toast('success', ytcr.getI18n('YTCR_SETTINGS_SAVED'));
   }
 
-  configSaveOther(data: any) {
+  async configSaveOther(data: any) {
+    this.#config.set('prefetch', data['prefetch']);
     this.#config.set('liveStreamQuality', data['liveStreamQuality'].value);
     this.#config.set('enableAutoplayOnConnect', data['enableAutoplayOnConnect']);
     this.#config.set('resetPlayerOnDisconnect', data['resetPlayerOnDisconnect'].value);
@@ -384,6 +388,10 @@ class ControllerYTCR {
       this.#receiver.setLogLevel(data['debug'] ? Constants.LOG_LEVELS.DEBUG : Constants.LOG_LEVELS.INFO);
       this.#receiver.enableAutoplayOnConnect(data['enableAutoplayOnConnect']);
       this.#receiver.setResetPlayerOnDisconnectPolicy(data['resetPlayerOnDisconnect'].value);
+    }
+
+    if (this.#player) {
+      await this.#player.enablePrefetch(data['prefetch']);
     }
 
     ytcr.toast('success', ytcr.getI18n('YTCR_SETTINGS_SAVED'));

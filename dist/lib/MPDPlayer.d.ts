@@ -14,6 +14,7 @@ export interface MPDPlayerConfig {
     mpd: MPD.Config;
     volumeControl: VolumeControl;
     videoLoader: VideoLoader;
+    prefetch: boolean;
 }
 export interface MPDPlayerVideoInfo extends VideoInfo {
     mpdSongId: string;
@@ -80,6 +81,7 @@ export default class MPDPlayer extends Player {
     protected doGetVolume(): Promise<Volume>;
     protected doGetPosition(): Promise<number>;
     protected doGetDuration(): Promise<number>;
+    enablePrefetch(value: boolean): Promise<void>;
     destroy(): Promise<void>;
     sleep(): void;
     wake(): void;

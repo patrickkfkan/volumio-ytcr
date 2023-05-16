@@ -45,7 +45,7 @@ class MPDPlayer extends yt_cast_receiver_1.Player {
         __classPrivateFieldSet(this, _MPDPlayer_mpdClient, await mpd_api_1.default.connect(__classPrivateFieldGet(this, _MPDPlayer_config, "f").mpd), "f");
         __classPrivateFieldSet(this, _MPDPlayer_destroyed, false, "f");
         __classPrivateFieldSet(this, _MPDPlayer_videoLoader, __classPrivateFieldGet(this, _MPDPlayer_config, "f").videoLoader, "f");
-        __classPrivateFieldSet(this, _MPDPlayer_videoPrefetcher, new VideoPrefetcher_js_1.default(__classPrivateFieldGet(this, _MPDPlayer_videoLoader, "f"), this.logger), "f");
+        __classPrivateFieldSet(this, _MPDPlayer_videoPrefetcher, __classPrivateFieldGet(this, _MPDPlayer_config, "f").prefetch ? new VideoPrefetcher_js_1.default(__classPrivateFieldGet(this, _MPDPlayer_videoLoader, "f"), this.logger) : null, "f");
         __classPrivateFieldSet(this, _MPDPlayer_volumeControl, __classPrivateFieldGet(this, _MPDPlayer_config, "f").volumeControl, "f");
         const externalMPDEventListener = __classPrivateFieldGet(this, _MPDPlayer_instances, "m", _MPDPlayer_handleExternalMPDEvent).bind(this);
         __classPrivateFieldSet(this, _MPDPlayer_subsystemEventEmitter, MPDSubsystemEventEmitter_js_1.default.instance(__classPrivateFieldGet(this, _MPDPlayer_mpdClient, "f"), this.logger), "f");
@@ -210,6 +210,23 @@ class MPDPlayer extends yt_cast_receiver_1.Player {
         const mpdStatus = await __classPrivateFieldGet(this, _MPDPlayer_mpdClient, "f").api.status.get();
         return mpdStatus.duration || 0;
     }
+    async enablePrefetch(value) {
+        if (value === __classPrivateFieldGet(this, _MPDPlayer_config, "f").prefetch) {
+            return;
+        }
+        if (value) {
+            __classPrivateFieldSet(this, _MPDPlayer_videoPrefetcher, new VideoPrefetcher_js_1.default(__classPrivateFieldGet(this, _MPDPlayer_videoLoader, "f"), this.logger), "f");
+            if ((this.status === yt_cast_receiver_1.Constants.PLAYER_STATUSES.PAUSED || this.status === yt_cast_receiver_1.Constants.PLAYER_STATUSES.PLAYING) && __classPrivateFieldGet(this, _MPDPlayer_mpdClient, "f")) {
+                const mpdStatus = await __classPrivateFieldGet(this, _MPDPlayer_mpdClient, "f").api.status.get();
+                __classPrivateFieldGet(this, _MPDPlayer_instances, "m", _MPDPlayer_checkAndStartPrefetch).call(this, mpdStatus);
+            }
+        }
+        else {
+            await __classPrivateFieldGet(this, _MPDPlayer_instances, "m", _MPDPlayer_clearPrefetch).call(this);
+            __classPrivateFieldSet(this, _MPDPlayer_videoPrefetcher, null, "f");
+        }
+        __classPrivateFieldGet(this, _MPDPlayer_config, "f").prefetch = value;
+    }
     async destroy() {
         __classPrivateFieldSet(this, _MPDPlayer_destroyed, true, "f");
         __classPrivateFieldGet(this, _MPDPlayer_subsystemEventEmitter, "f")?.disable();
@@ -354,7 +371,7 @@ _MPDPlayer_config = new WeakMap(), _MPDPlayer_currentVideoInfo = new WeakMap(), 
     }
     return null;
 }, _MPDPlayer_checkAndStartPrefetch = function _MPDPlayer_checkAndStartPrefetch(mpdStatus) {
-    if (!__classPrivateFieldGet(this, _MPDPlayer_currentVideoInfo, "f") || __classPrivateFieldGet(this, _MPDPlayer_currentVideoInfo, "f").isLive) {
+    if (!__classPrivateFieldGet(this, _MPDPlayer_videoPrefetcher, "f") || !__classPrivateFieldGet(this, _MPDPlayer_currentVideoInfo, "f") || __classPrivateFieldGet(this, _MPDPlayer_currentVideoInfo, "f").isLive) {
         return;
     }
     if (__classPrivateFieldGet(this, _MPDPlayer_prefetchedAndQueuedVideoInfo, "f") || __classPrivateFieldGet(this, _MPDPlayer_videoPrefetcher, "f").isPrefetching()) {
@@ -371,6 +388,9 @@ _MPDPlayer_config = new WeakMap(), _MPDPlayer_currentVideoInfo = new WeakMap(), 
         }
     }
 }, _MPDPlayer_cancelPrefetch = async function _MPDPlayer_cancelPrefetch(abortIfPrefetching = false, clearIfPrefetched = false) {
+    if (!__classPrivateFieldGet(this, _MPDPlayer_videoPrefetcher, "f")) { // Prefetch disabled
+        return;
+    }
     this.logger.debug(`[ytcr] Cancelling prefetch (abortIfPrefetching: ${abortIfPrefetching}, clearIfPrefetched: ${clearIfPrefetched})`);
     if (!__classPrivateFieldGet(this, _MPDPlayer_videoPrefetcher, "f").isPrefetching() || abortIfPrefetching) {
         __classPrivateFieldGet(this, _MPDPlayer_videoPrefetcher, "f").abortPrefetch();

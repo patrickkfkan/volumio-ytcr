@@ -111,8 +111,9 @@ class ControllerYTCR {
                 region: YTCRContext_js_1.default.getConfigValue('region', 'US'),
                 language: YTCRContext_js_1.default.getConfigValue('language', 'en')
             };
+            const prefetch = YTCRContext_js_1.default.getConfigValue('prefetch', true);
             const liveStreamQuality = YTCRContext_js_1.default.getConfigValue('liveStreamQuality', 'auto');
-            const liveStreamQualityOptions = otherUIConf.content[0].options;
+            const liveStreamQualityOptions = otherUIConf.content[1].options;
             const availableIf = utils.getNetworkInterfaces();
             const ifOpts = [{
                     value: '',
@@ -141,9 +142,10 @@ class ControllerYTCR {
             i18nUIConf.content[0].value = i18n_json_1.default.region.find((r) => i18n.region === r.value);
             i18nUIConf.content[1].options = i18n_json_1.default.language;
             i18nUIConf.content[1].value = i18n_json_1.default.language.find((r) => i18n.language === r.value);
-            otherUIConf.content[0].value = liveStreamQualityOptions.find((o) => o.value === liveStreamQuality);
-            otherUIConf.content[1].value = enableAutoplayOnConnect;
-            otherUIConf.content[2].options = [
+            otherUIConf.content[0].value = prefetch;
+            otherUIConf.content[1].value = liveStreamQualityOptions.find((o) => o.value === liveStreamQuality);
+            otherUIConf.content[2].value = enableAutoplayOnConnect;
+            otherUIConf.content[3].options = [
                 {
                     value: yt_cast_receiver_1.Constants.RESET_PLAYER_ON_DISCONNECT_POLICIES.ALL_DISCONNECTED,
                     label: YTCRContext_js_1.default.getI18n('YTCR_RESET_PLAYER_ON_DISCONNECT_ALWAYS')
@@ -153,8 +155,8 @@ class ControllerYTCR {
                     label: YTCRContext_js_1.default.getI18n('YTCR_RESET_PLAYER_ON_DISCONNECT_EXPLICIT')
                 }
             ];
-            otherUIConf.content[2].value = otherUIConf.content[2].options.find((o) => o.value === resetPlayerOnDisconnect);
-            otherUIConf.content[3].value = debug;
+            otherUIConf.content[3].value = otherUIConf.content[3].options.find((o) => o.value === resetPlayerOnDisconnect);
+            otherUIConf.content[4].value = debug;
             let connectionStatus;
             if (!receiverRunning) {
                 connectionStatus = YTCRContext_js_1.default.getI18n('YTCR_IDLE_NOT_RUNNING');
@@ -193,7 +195,8 @@ class ControllerYTCR {
         const playerConfig = {
             mpd: __classPrivateFieldGet(this, _ControllerYTCR_instances, "m", _ControllerYTCR_getMpdConfig).call(this),
             volumeControl: __classPrivateFieldGet(this, _ControllerYTCR_volumeControl, "f"),
-            videoLoader: new VideoLoader_js_1.default(__classPrivateFieldGet(this, _ControllerYTCR_logger, "f"))
+            videoLoader: new VideoLoader_js_1.default(__classPrivateFieldGet(this, _ControllerYTCR_logger, "f")),
+            prefetch: YTCRContext_js_1.default.getConfigValue('prefetch', true)
         };
         __classPrivateFieldSet(this, _ControllerYTCR_player, new MPDPlayer_js_1.default(playerConfig), "f");
         const bindToIf = YTCRContext_js_1.default.getConfigValue('bindToIf', '');
@@ -355,7 +358,8 @@ class ControllerYTCR {
         }
         YTCRContext_js_1.default.toast('success', YTCRContext_js_1.default.getI18n('YTCR_SETTINGS_SAVED'));
     }
-    configSaveOther(data) {
+    async configSaveOther(data) {
+        __classPrivateFieldGet(this, _ControllerYTCR_config, "f").set('prefetch', data['prefetch']);
         __classPrivateFieldGet(this, _ControllerYTCR_config, "f").set('liveStreamQuality', data['liveStreamQuality'].value);
         __classPrivateFieldGet(this, _ControllerYTCR_config, "f").set('enableAutoplayOnConnect', data['enableAutoplayOnConnect']);
         __classPrivateFieldGet(this, _ControllerYTCR_config, "f").set('resetPlayerOnDisconnect', data['resetPlayerOnDisconnect'].value);
@@ -364,6 +368,9 @@ class ControllerYTCR {
             __classPrivateFieldGet(this, _ControllerYTCR_receiver, "f").setLogLevel(data['debug'] ? yt_cast_receiver_1.Constants.LOG_LEVELS.DEBUG : yt_cast_receiver_1.Constants.LOG_LEVELS.INFO);
             __classPrivateFieldGet(this, _ControllerYTCR_receiver, "f").enableAutoplayOnConnect(data['enableAutoplayOnConnect']);
             __classPrivateFieldGet(this, _ControllerYTCR_receiver, "f").setResetPlayerOnDisconnectPolicy(data['resetPlayerOnDisconnect'].value);
+        }
+        if (__classPrivateFieldGet(this, _ControllerYTCR_player, "f")) {
+            await __classPrivateFieldGet(this, _ControllerYTCR_player, "f").enablePrefetch(data['prefetch']);
         }
         YTCRContext_js_1.default.toast('success', YTCRContext_js_1.default.getI18n('YTCR_SETTINGS_SAVED'));
     }

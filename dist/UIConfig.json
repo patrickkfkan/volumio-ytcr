@@ -114,6 +114,7 @@
       "saveButton": {
         "label": "TRANSLATE.YTCR_SAVE",
         "data": [
+          "prefetch",
           "liveStreamQuality",
           "enableAutoplayOnConnect",
           "resetPlayerOnDisconnect",
@@ -121,6 +122,12 @@
         ]
       },
       "content": [
+        {
+          "id": "prefetch",
+          "element": "switch",
+          "label": "TRANSLATE.YTCR_PREFETCH",
+          "value": true
+        },
         {
           "id": "liveStreamQuality",
           "element": "select",
