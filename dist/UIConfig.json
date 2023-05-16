@@ -115,6 +115,7 @@
         "label": "TRANSLATE.YTCR_SAVE",
         "data": [
           "prefetch",
+          "preferOpus",
           "liveStreamQuality",
           "enableAutoplayOnConnect",
           "resetPlayerOnDisconnect",
@@ -127,6 +128,16 @@
           "element": "switch",
           "label": "TRANSLATE.YTCR_PREFETCH",
           "value": true
+        },
+        {
+          "id": "preferOpus",
+          "element": "switch",
+          "label": "TRANSLATE.YTCR_PREFER_OPUS",
+          "value": false,
+          "visibleIf": {
+            "field": "prefetch",
+            "value": true
+          }
         },
         {
           "id": "liveStreamQuality",

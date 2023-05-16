@@ -112,8 +112,9 @@ class ControllerYTCR {
                 language: YTCRContext_js_1.default.getConfigValue('language', 'en')
             };
             const prefetch = YTCRContext_js_1.default.getConfigValue('prefetch', true);
+            const preferOpus = YTCRContext_js_1.default.getConfigValue('preferOpus', false);
             const liveStreamQuality = YTCRContext_js_1.default.getConfigValue('liveStreamQuality', 'auto');
-            const liveStreamQualityOptions = otherUIConf.content[1].options;
+            const liveStreamQualityOptions = otherUIConf.content[2].options;
             const availableIf = utils.getNetworkInterfaces();
             const ifOpts = [{
                     value: '',
@@ -143,9 +144,10 @@ class ControllerYTCR {
             i18nUIConf.content[1].options = i18n_json_1.default.language;
             i18nUIConf.content[1].value = i18n_json_1.default.language.find((r) => i18n.language === r.value);
             otherUIConf.content[0].value = prefetch;
-            otherUIConf.content[1].value = liveStreamQualityOptions.find((o) => o.value === liveStreamQuality);
-            otherUIConf.content[2].value = enableAutoplayOnConnect;
-            otherUIConf.content[3].options = [
+            otherUIConf.content[1].value = preferOpus;
+            otherUIConf.content[2].value = liveStreamQualityOptions.find((o) => o.value === liveStreamQuality);
+            otherUIConf.content[3].value = enableAutoplayOnConnect;
+            otherUIConf.content[4].options = [
                 {
                     value: yt_cast_receiver_1.Constants.RESET_PLAYER_ON_DISCONNECT_POLICIES.ALL_DISCONNECTED,
                     label: YTCRContext_js_1.default.getI18n('YTCR_RESET_PLAYER_ON_DISCONNECT_ALWAYS')
@@ -155,8 +157,8 @@ class ControllerYTCR {
                     label: YTCRContext_js_1.default.getI18n('YTCR_RESET_PLAYER_ON_DISCONNECT_EXPLICIT')
                 }
             ];
-            otherUIConf.content[3].value = otherUIConf.content[3].options.find((o) => o.value === resetPlayerOnDisconnect);
-            otherUIConf.content[4].value = debug;
+            otherUIConf.content[4].value = otherUIConf.content[4].options.find((o) => o.value === resetPlayerOnDisconnect);
+            otherUIConf.content[5].value = debug;
             let connectionStatus;
             if (!receiverRunning) {
                 connectionStatus = YTCRContext_js_1.default.getI18n('YTCR_IDLE_NOT_RUNNING');
@@ -360,6 +362,7 @@ class ControllerYTCR {
     }
     async configSaveOther(data) {
         __classPrivateFieldGet(this, _ControllerYTCR_config, "f").set('prefetch', data['prefetch']);
+        __classPrivateFieldGet(this, _ControllerYTCR_config, "f").set('preferOpus', data['preferOpus']);
         __classPrivateFieldGet(this, _ControllerYTCR_config, "f").set('liveStreamQuality', data['liveStreamQuality'].value);
         __classPrivateFieldGet(this, _ControllerYTCR_config, "f").set('enableAutoplayOnConnect', data['enableAutoplayOnConnect']);
         __classPrivateFieldGet(this, _ControllerYTCR_config, "f").set('resetPlayerOnDisconnect', data['resetPlayerOnDisconnect'].value);

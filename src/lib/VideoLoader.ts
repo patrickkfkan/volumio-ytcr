@@ -291,7 +291,18 @@ export default class VideoLoader {
     if (!this.#innertube) {
       throw Error('VideoLoader not initialized');
     }
-    const format = videoInfo?.chooseFormat(BEST_AUDIO_FORMAT);
+    const preferredFormat = {
+      ...BEST_AUDIO_FORMAT
+    };
+    const prefetch = ytcr.getConfigValue('prefetch', true);
+    const preferOpus = prefetch && ytcr.getConfigValue('preferOpus', false);
+    if (preferOpus) {
+      preferredFormat.format = 'opus';
+    }
+    let format = videoInfo?.chooseFormat(preferredFormat);
+    if (!format && preferOpus && videoInfo) {
+      format = videoInfo.chooseFormat(BEST_AUDIO_FORMAT);
+    }
     const streamUrl = format ? format.decipher(this.#innertube.session.player) : null;
     const streamData = format ? { ...format, url: streamUrl } as Format : null;
     if (streamData) {

@@ -88,8 +88,9 @@ class ControllerYTCR {
           language: ytcr.getConfigValue('language', 'en')
         };
         const prefetch = ytcr.getConfigValue('prefetch', true);
+        const preferOpus = ytcr.getConfigValue('preferOpus', false);
         const liveStreamQuality = ytcr.getConfigValue('liveStreamQuality', 'auto');
-        const liveStreamQualityOptions = otherUIConf.content[1].options;
+        const liveStreamQualityOptions = otherUIConf.content[2].options;
 
         const availableIf = utils.getNetworkInterfaces();
         const ifOpts = [ {
@@ -124,9 +125,10 @@ class ControllerYTCR {
         i18nUIConf.content[1].value = i18nConfOptions.language.find((r) => i18n.language === r.value);
 
         otherUIConf.content[0].value = prefetch;
-        otherUIConf.content[1].value = liveStreamQualityOptions.find((o: any) => o.value === liveStreamQuality);
-        otherUIConf.content[2].value = enableAutoplayOnConnect;
-        otherUIConf.content[3].options = [
+        otherUIConf.content[1].value = preferOpus;
+        otherUIConf.content[2].value = liveStreamQualityOptions.find((o: any) => o.value === liveStreamQuality);
+        otherUIConf.content[3].value = enableAutoplayOnConnect;
+        otherUIConf.content[4].options = [
           {
             value: Constants.RESET_PLAYER_ON_DISCONNECT_POLICIES.ALL_DISCONNECTED,
             label: ytcr.getI18n('YTCR_RESET_PLAYER_ON_DISCONNECT_ALWAYS')
@@ -136,8 +138,8 @@ class ControllerYTCR {
             label: ytcr.getI18n('YTCR_RESET_PLAYER_ON_DISCONNECT_EXPLICIT')
           }
         ];
-        otherUIConf.content[3].value = otherUIConf.content[3].options.find((o: any) => o.value === resetPlayerOnDisconnect);
-        otherUIConf.content[4].value = debug;
+        otherUIConf.content[4].value = otherUIConf.content[4].options.find((o: any) => o.value === resetPlayerOnDisconnect);
+        otherUIConf.content[5].value = debug;
 
         let connectionStatus;
         if (!receiverRunning) {
@@ -379,6 +381,7 @@ class ControllerYTCR {
 
   async configSaveOther(data: any) {
     this.#config.set('prefetch', data['prefetch']);
+    this.#config.set('preferOpus', data['preferOpus']);
     this.#config.set('liveStreamQuality', data['liveStreamQuality'].value);
     this.#config.set('enableAutoplayOnConnect', data['enableAutoplayOnConnect']);
     this.#config.set('resetPlayerOnDisconnect', data['resetPlayerOnDisconnect'].value);

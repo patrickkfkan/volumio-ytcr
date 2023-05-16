@@ -266,7 +266,18 @@ _VideoLoader_innertube = new WeakMap(), _VideoLoader_logger = new WeakMap(), _Vi
     if (!__classPrivateFieldGet(this, _VideoLoader_innertube, "f")) {
         throw Error('VideoLoader not initialized');
     }
-    const format = videoInfo?.chooseFormat(BEST_AUDIO_FORMAT);
+    const preferredFormat = {
+        ...BEST_AUDIO_FORMAT
+    };
+    const prefetch = YTCRContext_js_1.default.getConfigValue('prefetch', true);
+    const preferOpus = prefetch && YTCRContext_js_1.default.getConfigValue('preferOpus', false);
+    if (preferOpus) {
+        preferredFormat.format = 'opus';
+    }
+    let format = videoInfo?.chooseFormat(preferredFormat);
+    if (!format && preferOpus && videoInfo) {
+        format = videoInfo.chooseFormat(BEST_AUDIO_FORMAT);
+    }
     const streamUrl = format ? format.decipher(__classPrivateFieldGet(this, _VideoLoader_innertube, "f").session.player) : null;
     const streamData = format ? { ...format, url: streamUrl } : null;
     if (streamData) {
