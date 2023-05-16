@@ -127,12 +127,14 @@
           "id": "prefetch",
           "element": "switch",
           "label": "TRANSLATE.YTCR_PREFETCH",
+          "doc": "TRANSLATE.YTCR_PREFETCH_DESC",
           "value": true
         },
         {
           "id": "preferOpus",
           "element": "switch",
           "label": "TRANSLATE.YTCR_PREFER_OPUS",
+          "doc": "TRANSLATE.YTCR_PREFER_OPUS_DESC",
           "value": false,
           "visibleIf": {
             "field": "prefetch",
