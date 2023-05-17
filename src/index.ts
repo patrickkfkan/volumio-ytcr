@@ -279,7 +279,7 @@ class ControllerYTCR {
             // If queue is not empty, it is possible that we are just moving to another song. In this case, we don't push
             // Idle state to avoid ugly flickering of the screen caused by the temporary Idle state.
             const currentVolumioState = ytcr.getStateMachine().getState() as VolumioState;
-            currentVolumioState.status = 'stop';
+            currentVolumioState.status = 'pause'; // Don't use 'stop' - will display Volumio logo leading to flicker!
             await this.pushState(currentVolumioState);
           }
           else {
