@@ -1,4 +1,4 @@
-import { Constants, Player, PlayerState, Video, Volume } from 'yt-cast-receiver';
+import { Constants, PLAYLIST_EVENT_TYPES, Player, PlayerState, Video, Volume } from 'yt-cast-receiver';
 import mpdApi, { MPDApi } from 'mpd-api';
 import { MPD } from 'mpd2';
 import AbortController from 'abort-controller';
@@ -83,6 +83,7 @@ export default class MPDPlayer extends Player {
   #videoLoader: VideoLoader;
   #loadVideoAbortController: AbortController | null;
   #videoPrefetcher: VideoPrefetcher | null;
+  #playlistEventListener: () => void;
 
   #subsystemEventEmitter: MPDSubsystemEventEmitter | null;
   #destroyed: boolean;
@@ -108,6 +109,11 @@ export default class MPDPlayer extends Player {
     this.#subsystemEventEmitter.on('player', externalMPDEventListener);
     this.#subsystemEventEmitter.on('mixer', externalMPDEventListener);
     this.#subsystemEventEmitter.enable();
+
+    this.#playlistEventListener = this.#handlePlaylistEvent.bind(this);
+    Object.values(PLAYLIST_EVENT_TYPES).forEach((event: any) => {
+      this.queue.on(event, this.#playlistEventListener);
+    });
   }
 
   #abortLoadVideo() {
@@ -386,6 +392,30 @@ export default class MPDPlayer extends Player {
     this.#config.prefetch = value;
   }
 
+  async #handlePlaylistEvent() {
+    const queueState = this.queue.getState();
+    if (!queueState.current?.id || this.#currentVideoInfo?.id !== queueState.current.id) {
+      // Skip handling if:
+      // 1. Current video is `null`, meaning doStop() will be called if player is playing. We will clear prefetching there; or
+      // 2. Current video has changed, meaning doPlay() will be called. We will handle prefetching there.
+      return;
+    }
+    // Same video so doPlay() / doStop() will not be called.
+    // But playlist could have been updated so that the next / autoplay video is different. Need to refresh prefetch as ncessary.
+    if (this.#videoPrefetcher) {
+      const nextVideo = queueState.next || queueState.autoplay;
+      const prefetcherTarget = this.#prefetchedAndQueuedVideoInfo || this.#videoPrefetcher.getCurrentTarget();
+      if (!nextVideo || prefetcherTarget?.id !== nextVideo.id) {
+        await this.#clearPrefetch();
+        if (nextVideo && this.#mpdClient) {
+          this.logger.debug(`[ytcr] Refreshing prefetcher (previous target -> current: ${prefetcherTarget?.id} -> ${nextVideo.id})`);
+          const mpdStatus = await this.#mpdClient.api.status.get<MPDStatus>();
+          this.#checkAndStartPrefetch(mpdStatus);
+        }
+      }
+    }
+  }
+
   #checkAndStartPrefetch(mpdStatus: MPDStatus) {
     if (!this.#videoPrefetcher || !this.#currentVideoInfo || this.#currentVideoInfo.isLive) {
       return;
@@ -499,6 +529,10 @@ export default class MPDPlayer extends Player {
     await this.#mpdClient?.disconnect();
     this.removeAllListeners();
 
+    Object.values(PLAYLIST_EVENT_TYPES).forEach((event: any) => {
+      this.queue.off(event, this.#playlistEventListener);
+    });
+
     this.#subsystemEventEmitter = null;
     this.#mpdClient = null;
     this.#currentVideoInfo = null;
@@ -533,6 +567,7 @@ export default class MPDPlayer extends Player {
     if (mpdStatus.state === 'play' && this.#prefetchedAndQueuedVideoInfo && mpdStatus.songid.toString() === this.#prefetchedAndQueuedVideoInfo.mpdSongId) {
       this.logger.debug('[ytcr] Playback of prefetched video started');
       this.#currentVideoInfo = this.#prefetchedAndQueuedVideoInfo;
+      this.#clearPrefetchedVideoExpiryTimer();
       this.#prefetchedAndQueuedVideoInfo = null;
       await this.queue.next();
       await this.notifyExternalStateChange(Constants.PLAYER_STATUSES.PLAYING);

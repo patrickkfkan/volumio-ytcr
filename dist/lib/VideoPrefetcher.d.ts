@@ -8,5 +8,7 @@ export default class VideoPrefetcher extends EventEmitter {
     startPrefetchOnTimeout(video: Video, seconds: number): void;
     abortPrefetch(): void;
     isPrefetching(): boolean;
+    isPending(): boolean;
+    getCurrentTarget(): Video | null;
 }
 //# sourceMappingURL=VideoPrefetcher.d.ts.map

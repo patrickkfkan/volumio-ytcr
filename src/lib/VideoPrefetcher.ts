@@ -8,6 +8,7 @@ export default class VideoPrefetcher extends EventEmitter {
   #videoLoader: VideoLoader;
   #startPrefetchTimer: NodeJS.Timeout | null;
   #prefetchVideoAbortController: AbortController | null;
+  #target: Video | null;
   #logger: Logger;
 
   constructor(videoLoader: VideoLoader, logger: Logger) {
@@ -15,17 +16,19 @@ export default class VideoPrefetcher extends EventEmitter {
     this.#videoLoader = videoLoader;
     this.#startPrefetchTimer = null;
     this.#prefetchVideoAbortController = null;
+    this.#target = null;
     this.#logger = logger;
   }
 
   startPrefetchOnTimeout(video: Video, seconds: number) {
     this.abortPrefetch();
     this.#startPrefetchTimer = setTimeout(this.#prefetch.bind(this, video), seconds * 1000);
+    this.#target = video;
     this.#logger.debug(`[ytcr] Going to prefetch ${video.id} in ${seconds}s`);
   }
 
   async #prefetch(video: Video) {
-    this.abortPrefetch();
+    this.#clearPrefetchTimer();
     this.#prefetchVideoAbortController = new AbortController();
     try {
       this.#logger.debug(`[ytcr] Begin prefetching ${video.id}...`);
@@ -43,21 +46,37 @@ export default class VideoPrefetcher extends EventEmitter {
     }
     finally {
       this.#prefetchVideoAbortController = null;
+      if (!this.isPending()) {
+        this.#target = null;
+      }
     }
   }
 
   abortPrefetch() {
-    if (this.#startPrefetchTimer) {
-      clearTimeout(this.#startPrefetchTimer);
-      this.#startPrefetchTimer = null;
-    }
+    this.#clearPrefetchTimer();
     if (this.#prefetchVideoAbortController) {
       this.#prefetchVideoAbortController.abort();
       this.#prefetchVideoAbortController = null;
+    }
+    this.#target = null;
+  }
+
+  #clearPrefetchTimer() {
+    if (this.#startPrefetchTimer) {
+      clearTimeout(this.#startPrefetchTimer);
+      this.#startPrefetchTimer = null;
     }
   }
 
   isPrefetching(): boolean {
     return !!this.#prefetchVideoAbortController;
+  }
+
+  isPending(): boolean {
+    return !!this.#startPrefetchTimer;
+  }
+
+  getCurrentTarget(): Video | null {
+    return this.#target;
   }
 }

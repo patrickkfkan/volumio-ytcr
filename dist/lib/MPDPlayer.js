@@ -13,7 +13,7 @@ var __classPrivateFieldGet = (this && this.__classPrivateFieldGet) || function (
 var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
-var _MPDPlayer_instances, _MPDPlayer_config, _MPDPlayer_currentVideoInfo, _MPDPlayer_prefetchedAndQueuedVideoInfo, _MPDPlayer_prefetchedVideoExpiryTimer, _MPDPlayer_mpdClient, _MPDPlayer_volumeControl, _MPDPlayer_videoLoader, _MPDPlayer_loadVideoAbortController, _MPDPlayer_videoPrefetcher, _MPDPlayer_subsystemEventEmitter, _MPDPlayer_destroyed, _MPDPlayer_asleep, _MPDPlayer_abortLoadVideo, _MPDPlayer_addToMPDQueue, _MPDPlayer_checkAndStartPrefetch, _MPDPlayer_cancelPrefetch, _MPDPlayer_clearPrefetch, _MPDPlayer_clearPrefetchedVideoExpiryTimer, _MPDPlayer_handlePrefetchedVideo, _MPDPlayer_handleExternalMPDEvent;
+var _MPDPlayer_instances, _MPDPlayer_config, _MPDPlayer_currentVideoInfo, _MPDPlayer_prefetchedAndQueuedVideoInfo, _MPDPlayer_prefetchedVideoExpiryTimer, _MPDPlayer_mpdClient, _MPDPlayer_volumeControl, _MPDPlayer_videoLoader, _MPDPlayer_loadVideoAbortController, _MPDPlayer_videoPrefetcher, _MPDPlayer_playlistEventListener, _MPDPlayer_subsystemEventEmitter, _MPDPlayer_destroyed, _MPDPlayer_asleep, _MPDPlayer_abortLoadVideo, _MPDPlayer_addToMPDQueue, _MPDPlayer_handlePlaylistEvent, _MPDPlayer_checkAndStartPrefetch, _MPDPlayer_cancelPrefetch, _MPDPlayer_clearPrefetch, _MPDPlayer_clearPrefetchedVideoExpiryTimer, _MPDPlayer_handlePrefetchedVideo, _MPDPlayer_handleExternalMPDEvent;
 Object.defineProperty(exports, "__esModule", { value: true });
 const yt_cast_receiver_1 = require("yt-cast-receiver");
 const mpd_api_1 = __importDefault(require("mpd-api"));
@@ -34,6 +34,7 @@ class MPDPlayer extends yt_cast_receiver_1.Player {
         _MPDPlayer_videoLoader.set(this, void 0);
         _MPDPlayer_loadVideoAbortController.set(this, void 0);
         _MPDPlayer_videoPrefetcher.set(this, void 0);
+        _MPDPlayer_playlistEventListener.set(this, void 0);
         _MPDPlayer_subsystemEventEmitter.set(this, void 0);
         _MPDPlayer_destroyed.set(this, void 0);
         _MPDPlayer_asleep.set(this, void 0);
@@ -52,6 +53,10 @@ class MPDPlayer extends yt_cast_receiver_1.Player {
         __classPrivateFieldGet(this, _MPDPlayer_subsystemEventEmitter, "f").on('player', externalMPDEventListener);
         __classPrivateFieldGet(this, _MPDPlayer_subsystemEventEmitter, "f").on('mixer', externalMPDEventListener);
         __classPrivateFieldGet(this, _MPDPlayer_subsystemEventEmitter, "f").enable();
+        __classPrivateFieldSet(this, _MPDPlayer_playlistEventListener, __classPrivateFieldGet(this, _MPDPlayer_instances, "m", _MPDPlayer_handlePlaylistEvent).bind(this), "f");
+        Object.values(yt_cast_receiver_1.PLAYLIST_EVENT_TYPES).forEach((event) => {
+            this.queue.on(event, __classPrivateFieldGet(this, _MPDPlayer_playlistEventListener, "f"));
+        });
     }
     async doPlay(video, position) {
         if (__classPrivateFieldGet(this, _MPDPlayer_destroyed, "f") || !__classPrivateFieldGet(this, _MPDPlayer_mpdClient, "f")) {
@@ -233,6 +238,9 @@ class MPDPlayer extends yt_cast_receiver_1.Player {
         await this.stop();
         await __classPrivateFieldGet(this, _MPDPlayer_mpdClient, "f")?.disconnect();
         this.removeAllListeners();
+        Object.values(yt_cast_receiver_1.PLAYLIST_EVENT_TYPES).forEach((event) => {
+            this.queue.off(event, __classPrivateFieldGet(this, _MPDPlayer_playlistEventListener, "f"));
+        });
         __classPrivateFieldSet(this, _MPDPlayer_subsystemEventEmitter, null, "f");
         __classPrivateFieldSet(this, _MPDPlayer_mpdClient, null, "f");
         __classPrivateFieldSet(this, _MPDPlayer_currentVideoInfo, null, "f");
@@ -347,7 +355,7 @@ class MPDPlayer extends yt_cast_receiver_1.Player {
     }
 }
 exports.default = MPDPlayer;
-_MPDPlayer_config = new WeakMap(), _MPDPlayer_currentVideoInfo = new WeakMap(), _MPDPlayer_prefetchedAndQueuedVideoInfo = new WeakMap(), _MPDPlayer_prefetchedVideoExpiryTimer = new WeakMap(), _MPDPlayer_mpdClient = new WeakMap(), _MPDPlayer_volumeControl = new WeakMap(), _MPDPlayer_videoLoader = new WeakMap(), _MPDPlayer_loadVideoAbortController = new WeakMap(), _MPDPlayer_videoPrefetcher = new WeakMap(), _MPDPlayer_subsystemEventEmitter = new WeakMap(), _MPDPlayer_destroyed = new WeakMap(), _MPDPlayer_asleep = new WeakMap(), _MPDPlayer_instances = new WeakSet(), _MPDPlayer_abortLoadVideo = function _MPDPlayer_abortLoadVideo() {
+_MPDPlayer_config = new WeakMap(), _MPDPlayer_currentVideoInfo = new WeakMap(), _MPDPlayer_prefetchedAndQueuedVideoInfo = new WeakMap(), _MPDPlayer_prefetchedVideoExpiryTimer = new WeakMap(), _MPDPlayer_mpdClient = new WeakMap(), _MPDPlayer_volumeControl = new WeakMap(), _MPDPlayer_videoLoader = new WeakMap(), _MPDPlayer_loadVideoAbortController = new WeakMap(), _MPDPlayer_videoPrefetcher = new WeakMap(), _MPDPlayer_playlistEventListener = new WeakMap(), _MPDPlayer_subsystemEventEmitter = new WeakMap(), _MPDPlayer_destroyed = new WeakMap(), _MPDPlayer_asleep = new WeakMap(), _MPDPlayer_instances = new WeakSet(), _MPDPlayer_abortLoadVideo = function _MPDPlayer_abortLoadVideo() {
     if (__classPrivateFieldGet(this, _MPDPlayer_loadVideoAbortController, "f")) {
         __classPrivateFieldGet(this, _MPDPlayer_loadVideoAbortController, "f").abort();
         __classPrivateFieldSet(this, _MPDPlayer_loadVideoAbortController, null, "f");
@@ -370,6 +378,28 @@ _MPDPlayer_config = new WeakMap(), _MPDPlayer_currentVideoInfo = new WeakMap(), 
         return songId;
     }
     return null;
+}, _MPDPlayer_handlePlaylistEvent = async function _MPDPlayer_handlePlaylistEvent() {
+    const queueState = this.queue.getState();
+    if (!queueState.current?.id || __classPrivateFieldGet(this, _MPDPlayer_currentVideoInfo, "f")?.id !== queueState.current.id) {
+        // Skip handling if:
+        // 1. Current video is `null`, meaning doStop() will be called if player is playing. We will clear prefetching there; or
+        // 2. Current video has changed, meaning doPlay() will be called. We will handle prefetching there.
+        return;
+    }
+    // Same video so doPlay() / doStop() will not be called.
+    // But playlist could have been updated so that the next / autoplay video is different. Need to refresh prefetch as ncessary.
+    if (__classPrivateFieldGet(this, _MPDPlayer_videoPrefetcher, "f")) {
+        const nextVideo = queueState.next || queueState.autoplay;
+        const prefetcherTarget = __classPrivateFieldGet(this, _MPDPlayer_prefetchedAndQueuedVideoInfo, "f") || __classPrivateFieldGet(this, _MPDPlayer_videoPrefetcher, "f").getCurrentTarget();
+        if (!nextVideo || prefetcherTarget?.id !== nextVideo.id) {
+            await __classPrivateFieldGet(this, _MPDPlayer_instances, "m", _MPDPlayer_clearPrefetch).call(this);
+            if (nextVideo && __classPrivateFieldGet(this, _MPDPlayer_mpdClient, "f")) {
+                this.logger.debug(`[ytcr] Refreshing prefetcher (previous target -> current: ${prefetcherTarget?.id} -> ${nextVideo.id})`);
+                const mpdStatus = await __classPrivateFieldGet(this, _MPDPlayer_mpdClient, "f").api.status.get();
+                __classPrivateFieldGet(this, _MPDPlayer_instances, "m", _MPDPlayer_checkAndStartPrefetch).call(this, mpdStatus);
+            }
+        }
+    }
 }, _MPDPlayer_checkAndStartPrefetch = function _MPDPlayer_checkAndStartPrefetch(mpdStatus) {
     if (!__classPrivateFieldGet(this, _MPDPlayer_videoPrefetcher, "f") || !__classPrivateFieldGet(this, _MPDPlayer_currentVideoInfo, "f") || __classPrivateFieldGet(this, _MPDPlayer_currentVideoInfo, "f").isLive) {
         return;
@@ -472,6 +502,7 @@ _MPDPlayer_config = new WeakMap(), _MPDPlayer_currentVideoInfo = new WeakMap(), 
     if (mpdStatus.state === 'play' && __classPrivateFieldGet(this, _MPDPlayer_prefetchedAndQueuedVideoInfo, "f") && mpdStatus.songid.toString() === __classPrivateFieldGet(this, _MPDPlayer_prefetchedAndQueuedVideoInfo, "f").mpdSongId) {
         this.logger.debug('[ytcr] Playback of prefetched video started');
         __classPrivateFieldSet(this, _MPDPlayer_currentVideoInfo, __classPrivateFieldGet(this, _MPDPlayer_prefetchedAndQueuedVideoInfo, "f"), "f");
+        __classPrivateFieldGet(this, _MPDPlayer_instances, "m", _MPDPlayer_clearPrefetchedVideoExpiryTimer).call(this);
         __classPrivateFieldSet(this, _MPDPlayer_prefetchedAndQueuedVideoInfo, null, "f");
         await this.queue.next();
         await this.notifyExternalStateChange(yt_cast_receiver_1.Constants.PLAYER_STATUSES.PLAYING);
