@@ -480,7 +480,8 @@ export default class MPDPlayer extends Player {
       return;
     }
     const queueState = this.queue.getState();
-    if (queueState.next?.id === videoInfo.id) {
+    const nextVideo = queueState.next || queueState.autoplay;
+    if (nextVideo?.id === videoInfo.id) {
       if (videoInfo) {
         const songId = await this.#addToMPDQueue(videoInfo);
         if (songId) {
@@ -518,7 +519,7 @@ export default class MPDPlayer extends Player {
       }
     }
     else {
-      this.logger.debug(`[ytcr] Prefetched video Id ${videoInfo.id} does not match next in queue (${queueState.next?.id})`);
+      this.logger.debug(`[ytcr] Prefetched video Id ${videoInfo.id} does not match next in queue (${nextVideo?.id})`);
     }
   }
 
