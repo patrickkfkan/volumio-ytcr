@@ -297,12 +297,29 @@ export default class VideoLoader {
     const prefetch = ytcr.getConfigValue('prefetch', true);
     const preferOpus = prefetch && ytcr.getConfigValue('preferOpus', false);
     if (preferOpus) {
+      this.#logger.debug('[ytcr] Preferred format is Opus');
       preferredFormat.format = 'opus';
     }
-    let format = videoInfo?.chooseFormat(preferredFormat);
-    if (!format && preferOpus && videoInfo) {
-      format = videoInfo.chooseFormat(BEST_AUDIO_FORMAT);
+    let format;
+    try {
+      format = videoInfo?.chooseFormat(preferredFormat);
     }
+    catch (error) {
+      if (preferOpus && videoInfo) {
+        this.#logger.debug('[ytcr] No matching format for Opus. Falling back to any audio format ...');
+        try {
+          format = videoInfo.chooseFormat(BEST_AUDIO_FORMAT);
+        }
+        catch (error) {
+          this.#logger.debug('[ytcr] Failed to obtain audio format:', error);
+          format = null;
+        }
+      }
+      else {
+        throw error;
+      }
+    }
+
     const streamUrl = format ? format.decipher(this.#innertube.session.player) : null;
     const streamData = format ? { ...format, url: streamUrl } as Format : null;
     if (streamData) {
