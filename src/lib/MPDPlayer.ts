@@ -84,6 +84,7 @@ export default class MPDPlayer extends Player {
   #loadVideoAbortController: AbortController | null;
   #videoPrefetcher: VideoPrefetcher | null;
   #playlistEventListener: () => void;
+  #autoplayModeChangeListener: () => void;
 
   #subsystemEventEmitter: MPDSubsystemEventEmitter | null;
   #destroyed: boolean;
@@ -114,6 +115,9 @@ export default class MPDPlayer extends Player {
     Object.values(PLAYLIST_EVENT_TYPES).forEach((event: any) => {
       this.queue.on(event, this.#playlistEventListener);
     });
+
+    this.#autoplayModeChangeListener = this.#handleAutoplayModeChange.bind(this);
+    this.queue.on('autoplayModeChange', this.#autoplayModeChangeListener);
   }
 
   #abortLoadVideo() {
@@ -402,6 +406,15 @@ export default class MPDPlayer extends Player {
     }
     // Same video so doPlay() / doStop() will not be called.
     // But playlist could have been updated so that the next / autoplay video is different. Need to refresh prefetch as ncessary.
+    await this.#refreshPrefetch();
+  }
+
+  async #handleAutoplayModeChange() {
+    await this.#refreshPrefetch();
+  }
+
+  async #refreshPrefetch() {
+    const queueState = this.queue.getState();
     if (this.#videoPrefetcher) {
       const nextVideo = queueState.next || queueState.autoplay;
       const prefetcherTarget = this.#prefetchedAndQueuedVideoInfo || this.#videoPrefetcher.getCurrentTarget();
@@ -533,6 +546,8 @@ export default class MPDPlayer extends Player {
     Object.values(PLAYLIST_EVENT_TYPES).forEach((event: any) => {
       this.queue.off(event, this.#playlistEventListener);
     });
+
+    this.queue.off('autoplayModeChange', this.#autoplayModeChangeListener);
 
     this.#subsystemEventEmitter = null;
     this.#mpdClient = null;
