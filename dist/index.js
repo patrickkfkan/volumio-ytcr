@@ -202,7 +202,7 @@ class ControllerYTCR {
         };
         __classPrivateFieldSet(this, _ControllerYTCR_player, new MPDPlayer_js_1.default(playerConfig), "f");
         const bindToIf = YTCRContext_js_1.default.getConfigValue('bindToIf', '');
-        const receiver = __classPrivateFieldSet(this, _ControllerYTCR_receiver, new yt_cast_receiver_1.default(__classPrivateFieldGet(this, _ControllerYTCR_player, "f"), {
+        const receiverOptions = {
             dial: {
                 port: YTCRContext_js_1.default.getConfigValue('port', 8098),
                 bindToInterfaces: utils.hasNetworkInterface(bindToIf) ? [bindToIf] : undefined
@@ -214,7 +214,14 @@ class ControllerYTCR {
             dataStore: __classPrivateFieldGet(this, _ControllerYTCR_dataStore, "f"),
             logger: __classPrivateFieldGet(this, _ControllerYTCR_logger, "f"),
             logLevel: YTCRContext_js_1.default.getConfigValue('debug', false) ? yt_cast_receiver_1.Constants.LOG_LEVELS.DEBUG : yt_cast_receiver_1.Constants.LOG_LEVELS.INFO
-        }), "f");
+        };
+        const deviceInfo = YTCRContext_js_1.default.getDeviceInfo();
+        if (deviceInfo.name) {
+            receiverOptions.device = {
+                name: deviceInfo.name
+            };
+        }
+        const receiver = __classPrivateFieldSet(this, _ControllerYTCR_receiver, new yt_cast_receiver_1.default(__classPrivateFieldGet(this, _ControllerYTCR_player, "f"), receiverOptions), "f");
         receiver.on('senderConnect', (sender) => {
             __classPrivateFieldGet(this, _ControllerYTCR_logger, "f").info('[ytcr] ***** Sender connected *****');
             YTCRContext_js_1.default.toast('success', YTCRContext_js_1.default.getI18n('YTCR_CONNECTED', sender.name));
@@ -302,7 +309,7 @@ class ControllerYTCR {
         receiver.start().then(async () => {
             await __classPrivateFieldGet(this, _ControllerYTCR_volumeControl, "f").init();
             await __classPrivateFieldGet(this, _ControllerYTCR_player, "f").init();
-            __classPrivateFieldGet(this, _ControllerYTCR_logger, "f").debug('[ytcr] Receiver started.');
+            __classPrivateFieldGet(this, _ControllerYTCR_logger, "f").debug('[ytcr] Receiver started with options:', receiverOptions);
             defer.resolve();
         })
             .catch((error) => {

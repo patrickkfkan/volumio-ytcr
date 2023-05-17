@@ -1,4 +1,4 @@
-import YouTubeCastReceiver, { Constants, PlayerState, Sender } from 'yt-cast-receiver';
+import YouTubeCastReceiver, { Constants, PlayerState, Sender, YouTubeCastReceiverOptions } from 'yt-cast-receiver';
 // eslint-disable-next-line @typescript-eslint/ban-ts-comment
 // @ts-ignore
 import libQ from 'kew';
@@ -192,7 +192,7 @@ class ControllerYTCR {
     this.#player = new MPDPlayer(playerConfig);
 
     const bindToIf = ytcr.getConfigValue('bindToIf', '');
-    const receiver = this.#receiver = new YouTubeCastReceiver(this.#player, {
+    const receiverOptions: YouTubeCastReceiverOptions = {
       dial: {
         port: ytcr.getConfigValue('port', 8098),
         bindToInterfaces: utils.hasNetworkInterface(bindToIf) ? [ bindToIf ] : undefined
@@ -204,7 +204,14 @@ class ControllerYTCR {
       dataStore: this.#dataStore,
       logger: this.#logger,
       logLevel: ytcr.getConfigValue('debug', false) ? Constants.LOG_LEVELS.DEBUG : Constants.LOG_LEVELS.INFO
-    });
+    };
+    const deviceInfo = ytcr.getDeviceInfo();
+    if (deviceInfo.name) {
+      receiverOptions.device = {
+        name: deviceInfo.name
+      };
+    }
+    const receiver = this.#receiver = new YouTubeCastReceiver(this.#player, receiverOptions);
 
     receiver.on('senderConnect', (sender: Sender) => {
       this.#logger.info('[ytcr] ***** Sender connected *****');
@@ -299,7 +306,7 @@ class ControllerYTCR {
     receiver.start().then(async () => {
       await this.#volumeControl.init();
       await this.#player.init();
-      this.#logger.debug('[ytcr] Receiver started.');
+      this.#logger.debug('[ytcr] Receiver started with options:', receiverOptions);
       defer.resolve();
     })
       .catch((error: any) => {
