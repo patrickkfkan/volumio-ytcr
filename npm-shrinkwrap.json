@@ -17,7 +17,7 @@
 				"node-fetch": "^2.6.9",
 				"string-format": "^2.0.0",
 				"v-conf": "^1.4.2",
-				"volumio-youtubei.js": "git+https://github.com/patrickkfkan/Volumio-YouTube.js.git#v0.3.3",
+				"volumio-youtubei.js": "github:patrickkfkan/Volumio-YouTube.js#v0.3.6",
 				"yt-cast-receiver": "^1.2.4"
 			},
 			"devDependencies": {
@@ -3348,20 +3348,31 @@
 			}
 		},
 		"node_modules/volumio-youtubei.js": {
-			"version": "0.3.3",
-			"resolved": "git+ssh://git@github.com/patrickkfkan/Volumio-YouTube.js.git#a1d8ec5dded54593f0347fef1faf1dfc0fe5d6e1",
+			"version": "0.3.6",
+			"resolved": "git+ssh://git@github.com/patrickkfkan/Volumio-YouTube.js.git#d1f09458220ee27f9beb4ac93a3677e0657f1d0e",
 			"funding": [
 				"https://github.com/sponsors/LuanRT"
 			],
 			"license": "MIT",
 			"dependencies": {
 				"event-target-polyfill": "0.0.3",
-				"jintr": "^1.0.0",
+				"jintr": "^2.0.0",
 				"linkedom": "^0.14.12",
 				"node-fetch": "^2.6.7",
 				"tslib": "^2.5.0",
 				"uuid": "^9.0.0",
 				"web-streams-polyfill": "^3.2.1"
+			}
+		},
+		"node_modules/volumio-youtubei.js/node_modules/jintr": {
+			"version": "2.0.0",
+			"resolved": "https://registry.npmjs.org/jintr/-/jintr-2.0.0.tgz",
+			"integrity": "sha512-RiVlevxttZ4eHEYB2dXKXDXluzHfRuw0DJQGsYuKCc5IvZj5/GbOakeqVX+Bar/G9kTty9xDJREcxukurkmYLA==",
+			"funding": [
+				"https://github.com/sponsors/LuanRT"
+			],
+			"dependencies": {
+				"acorn": "^8.8.0"
 			}
 		},
 		"node_modules/web-streams-polyfill": {
@@ -6016,16 +6027,26 @@
 			"integrity": "sha512-BNGbWLfd0eUPabhkXUVm0j8uuvREyTh5ovRa/dyow/BqAbZJyC+5fU+IzQOzmAKzYqYRAISoRhdQr3eIZ/PXqg=="
 		},
 		"volumio-youtubei.js": {
-			"version": "git+ssh://git@github.com/patrickkfkan/Volumio-YouTube.js.git#a1d8ec5dded54593f0347fef1faf1dfc0fe5d6e1",
-			"from": "volumio-youtubei.js@git+https://github.com/patrickkfkan/Volumio-YouTube.js.git#v0.3.3",
+			"version": "git+ssh://git@github.com/patrickkfkan/Volumio-YouTube.js.git#d1f09458220ee27f9beb4ac93a3677e0657f1d0e",
+			"from": "volumio-youtubei.js@git+https://github.com/patrickkfkan/Volumio-YouTube.js.git#v0.3.6",
 			"requires": {
 				"event-target-polyfill": "0.0.3",
-				"jintr": "^1.0.0",
+				"jintr": "^2.0.0",
 				"linkedom": "^0.14.12",
 				"node-fetch": "^2.6.7",
 				"tslib": "^2.5.0",
 				"uuid": "^9.0.0",
 				"web-streams-polyfill": "^3.2.1"
+			},
+			"dependencies": {
+				"jintr": {
+					"version": "2.0.0",
+					"resolved": "https://registry.npmjs.org/jintr/-/jintr-2.0.0.tgz",
+					"integrity": "sha512-RiVlevxttZ4eHEYB2dXKXDXluzHfRuw0DJQGsYuKCc5IvZj5/GbOakeqVX+Bar/G9kTty9xDJREcxukurkmYLA==",
+					"requires": {
+						"acorn": "^8.8.0"
+					}
+				}
 			}
 		},
 		"web-streams-polyfill": {
