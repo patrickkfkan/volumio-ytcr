@@ -1,13 +1,13 @@
 {
 	"name": "ytcr",
-	"version": "1.0.7",
+	"version": "1.1.0",
 	"lockfileVersion": 2,
 	"requires": true,
 	"//": "Redirects yt-cast-receiver/youtubei.js dependency to volumio-youtubei.js (for Node 14 compatibility)",
 	"packages": {
 		"": {
 			"name": "ytcr",
-			"version": "1.0.7",
+			"version": "1.1.0",
 			"license": "MIT",
 			"dependencies": {
 				"abort-controller": "^3.0.0",
@@ -15,7 +15,7 @@
 				"mpd-api": "^1.1.2",
 				"network-interfaces": "^1.1.0",
 				"node-fetch": "^2.6.9",
-				"now-playing-common": "github:patrickkfkan/volumio-now-playing-common#v0.3.2",
+				"now-playing-common": "git+https://github.com/patrickkfkan/volumio-now-playing-common#v0.3.2",
 				"semver": "^7.6.2",
 				"string-format": "^2.0.0",
 				"v-conf": "^1.4.2",
@@ -5555,7 +5555,7 @@
 		},
 		"now-playing-common": {
 			"version": "git+ssh://git@github.com/patrickkfkan/volumio-now-playing-common.git#e2cf9b1a36b8baadea8c1bd9a13054da4b4f6623",
-			"from": "now-playing-common@github:patrickkfkan/volumio-now-playing-common#v0.3.2"
+			"from": "now-playing-common@git+https://github.com/patrickkfkan/volumio-now-playing-common#v0.3.2"
 		},
 		"nth-check": {
 			"version": "2.1.1",
