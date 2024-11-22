@@ -1,4 +1,3 @@
-/// <reference types="node" />
 import EventEmitter from 'events';
 import { Logger, Video } from 'yt-cast-receiver';
 import VideoLoader from './VideoLoader';

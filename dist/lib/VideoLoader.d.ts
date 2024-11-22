@@ -1,5 +1,4 @@
 import { Logger, Video } from 'yt-cast-receiver';
-import { AbortSignal } from 'abort-controller';
 interface BasicInfo {
     id: string;
     src?: 'yt' | 'ytmusic';

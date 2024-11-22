@@ -1,7 +1,6 @@
 import { Constants, PLAYLIST_EVENT_TYPES, Player, PlayerState, Video, Volume } from 'yt-cast-receiver';
 import mpdApi, { MPDApi } from 'mpd-api';
 import { MPD } from 'mpd2';
-import AbortController from 'abort-controller';
 import MPDSubsystemEventEmitter, { SubsystemEvent, SubsystemName } from './MPDSubsystemEventEmitter.js';
 import VolumeControl from './VolumeControl.js';
 import VideoLoader, { VideoInfo } from './VideoLoader.js';

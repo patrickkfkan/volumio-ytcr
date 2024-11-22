@@ -17,7 +17,6 @@ var _MPDPlayer_instances, _MPDPlayer_config, _MPDPlayer_currentVideoInfo, _MPDPl
 Object.defineProperty(exports, "__esModule", { value: true });
 const yt_cast_receiver_1 = require("yt-cast-receiver");
 const mpd_api_1 = __importDefault(require("mpd-api"));
-const abort_controller_1 = __importDefault(require("abort-controller"));
 const MPDSubsystemEventEmitter_js_1 = __importDefault(require("./MPDSubsystemEventEmitter.js"));
 const YTCRContext_js_1 = __importDefault(require("./YTCRContext.js"));
 const VideoPrefetcher_js_1 = __importDefault(require("./VideoPrefetcher.js"));
@@ -66,7 +65,7 @@ class MPDPlayer extends yt_cast_receiver_1.Player {
         this.emit('action', { name: 'play', data: { videoId: video.id, position } });
         this.logger.debug(`[ytcr] MPDPlayer: play ${video.id} at position ${position}s`);
         __classPrivateFieldGet(this, _MPDPlayer_instances, "m", _MPDPlayer_abortLoadVideo).call(this);
-        __classPrivateFieldSet(this, _MPDPlayer_loadVideoAbortController, new abort_controller_1.default(), "f");
+        __classPrivateFieldSet(this, _MPDPlayer_loadVideoAbortController, new AbortController(), "f");
         let videoInfo;
         try {
             videoInfo = await __classPrivateFieldGet(this, _MPDPlayer_videoLoader, "f").getInfo(video, __classPrivateFieldGet(this, _MPDPlayer_loadVideoAbortController, "f").signal);
@@ -359,7 +358,6 @@ class MPDPlayer extends yt_cast_receiver_1.Player {
         return this;
     }
 }
-exports.default = MPDPlayer;
 _MPDPlayer_config = new WeakMap(), _MPDPlayer_currentVideoInfo = new WeakMap(), _MPDPlayer_prefetchedAndQueuedVideoInfo = new WeakMap(), _MPDPlayer_prefetchedVideoExpiryTimer = new WeakMap(), _MPDPlayer_mpdClient = new WeakMap(), _MPDPlayer_mpdClientInitTimer = new WeakMap(), _MPDPlayer_volumeControl = new WeakMap(), _MPDPlayer_videoLoader = new WeakMap(), _MPDPlayer_loadVideoAbortController = new WeakMap(), _MPDPlayer_videoPrefetcher = new WeakMap(), _MPDPlayer_playlistEventListener = new WeakMap(), _MPDPlayer_autoplayModeChangeListener = new WeakMap(), _MPDPlayer_subsystemEventEmitter = new WeakMap(), _MPDPlayer_destroyed = new WeakMap(), _MPDPlayer_asleep = new WeakMap(), _MPDPlayer_instances = new WeakSet(), _MPDPlayer_clearMPDClientInitTimer = function _MPDPlayer_clearMPDClientInitTimer() {
     if (__classPrivateFieldGet(this, _MPDPlayer_mpdClientInitTimer, "f")) {
         clearTimeout(__classPrivateFieldGet(this, _MPDPlayer_mpdClientInitTimer, "f"));
@@ -611,4 +609,5 @@ _MPDPlayer_config = new WeakMap(), _MPDPlayer_currentVideoInfo = new WeakMap(), 
         }
     }
 };
+exports.default = MPDPlayer;
 //# sourceMappingURL=MPDPlayer.js.map

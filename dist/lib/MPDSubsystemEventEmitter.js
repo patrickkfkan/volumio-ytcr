@@ -96,7 +96,6 @@ class MPDSubsystemEventEmitter {
         __classPrivateFieldGet(this, _MPDSubsystemEventEmitter_logger, "f").debug('[ytcr] MPDSubsystemEventEmitter destroyed.');
     }
 }
-exports.default = MPDSubsystemEventEmitter;
 _MPDSubsystemEventEmitter_status = new WeakMap(), _MPDSubsystemEventEmitter_mpdClient = new WeakMap(), _MPDSubsystemEventEmitter_logger = new WeakMap(), _MPDSubsystemEventEmitter_systemEventListener = new WeakMap(), _MPDSubsystemEventEmitter_subsystemEventListeners = new WeakMap(), _MPDSubsystemEventEmitter_instances = new WeakSet(), _MPDSubsystemEventEmitter_assertOK = function _MPDSubsystemEventEmitter_assertOK(c) {
     if (__classPrivateFieldGet(this, _MPDSubsystemEventEmitter_status, "f") === 'destroyed') {
         throw Error('Instance destroyed');
@@ -146,4 +145,5 @@ _MPDSubsystemEventEmitter_status = new WeakMap(), _MPDSubsystemEventEmitter_mpdC
         __classPrivateFieldGet(this, _MPDSubsystemEventEmitter_subsystemEventListeners, "f")[subsystem] = listeners.filter((l) => !l.once);
     }
 };
+exports.default = MPDSubsystemEventEmitter;
 //# sourceMappingURL=MPDSubsystemEventEmitter.js.map
