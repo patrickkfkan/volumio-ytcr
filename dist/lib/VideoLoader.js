@@ -40,7 +40,6 @@ var _VideoLoader_instances, _VideoLoader_innertube, _VideoLoader_logger, _VideoL
 Object.defineProperty(exports, "__esModule", { value: true });
 const volumio_youtubei_js_1 = __importStar(require("volumio-youtubei.js")), InnertubeLib = volumio_youtubei_js_1;
 const yt_cast_receiver_1 = require("yt-cast-receiver");
-const node_fetch_1 = __importDefault(require("node-fetch"));
 const YTCRContext_js_1 = __importDefault(require("./YTCRContext.js"));
 // https://gist.github.com/sidneys/7095afe4da4ae58694d128b1034e01e2
 const ITAG_TO_BITRATE = {
@@ -194,7 +193,7 @@ class VideoLoader {
             let playable = false;
             let errMsg = null;
             let streamInfo = null;
-            if (innertubeVideoInfo.playability_status.status === 'UNPLAYABLE') {
+            if (innertubeVideoInfo.playability_status?.status === 'UNPLAYABLE') {
                 if (innertubeVideoInfo.has_trailer) {
                     const trailerInfo = innertubeVideoInfo.getTrailerInfo();
                     if (trailerInfo) {
@@ -314,7 +313,7 @@ _VideoLoader_innertube = new WeakMap(), _VideoLoader_logger = new WeakMap(), _Vi
     if (!targetQuality || targetQuality === 'auto') {
         return manifestUrl;
     }
-    const res = await (0, node_fetch_1.default)(manifestUrl);
+    const res = await fetch(manifestUrl);
     const manifestContents = await res.text();
     // Match Resolution and Url
     const regex = /#EXT-X-STREAM-INF.*RESOLUTION=(\d+x\d+).*[\r\n](.+)/gm;

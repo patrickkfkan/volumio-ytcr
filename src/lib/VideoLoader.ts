@@ -3,7 +3,6 @@ import { VideoInfo as InnertubeVideoInfo } from 'volumio-youtubei.js/dist/src/pa
 import Format from 'volumio-youtubei.js/dist/src/parser/classes/misc/Format.js';
 import { DataError, Logger, Video } from 'yt-cast-receiver';
 import { AbortSignal } from 'abort-controller';
-import fetch from 'node-fetch';
 import ytcr from './YTCRContext.js';
 
 // https://gist.github.com/sidneys/7095afe4da4ae58694d128b1034e01e2
@@ -22,7 +21,7 @@ const BEST_AUDIO_FORMAT = {
   type: 'audio',
   format: 'any',
   quality: 'best'
-} as InnertubeLib.FormatOptions;
+} as InnertubeLib.Types.FormatOptions;
 
 interface BasicInfo {
   id: string;
@@ -225,7 +224,7 @@ export default class VideoLoader {
       let playable = false;
       let errMsg = null;
       let streamInfo = null;
-      if (innertubeVideoInfo.playability_status.status === 'UNPLAYABLE') {
+      if (innertubeVideoInfo.playability_status?.status === 'UNPLAYABLE') {
         if (innertubeVideoInfo.has_trailer) {
           const trailerInfo = innertubeVideoInfo.getTrailerInfo();
           if (trailerInfo) {
