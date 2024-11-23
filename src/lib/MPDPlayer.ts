@@ -390,6 +390,12 @@ export default class MPDPlayer extends Player {
   }
 
   protected doGetVolume(): Promise<Volume> {
+    if (!this.#volumeControl) {
+      return Promise.resolve({
+        level: 0,
+        muted: false
+      });
+    }
     return this.#volumeControl.getVolume();
   }
 
@@ -714,7 +720,7 @@ export default class MPDPlayer extends Player {
         }
       );
 
-      action();
+      action().catch((error: unknown) => this.logger.error('[ytcr] MPD error:', error));
     });
   }
 

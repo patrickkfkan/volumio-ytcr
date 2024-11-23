@@ -192,6 +192,12 @@ class MPDPlayer extends yt_cast_receiver_1.Player {
         return true;
     }
     doGetVolume() {
+        if (!__classPrivateFieldGet(this, _MPDPlayer_volumeControl, "f")) {
+            return Promise.resolve({
+                level: 0,
+                muted: false
+            });
+        }
         return __classPrivateFieldGet(this, _MPDPlayer_volumeControl, "f").getVolume();
     }
     async doGetPosition() {
@@ -281,7 +287,7 @@ class MPDPlayer extends yt_cast_receiver_1.Player {
                     resolve({ result: false, mpdStatus });
                 }
             });
-            action();
+            action().catch((error) => this.logger.error('[ytcr] MPD error:', error));
         });
     }
     async getVolumioState() {
