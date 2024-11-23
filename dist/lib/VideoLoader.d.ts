@@ -6,6 +6,7 @@ interface BasicInfo {
     channel?: string;
     artist?: string;
     album?: string;
+    isLive?: boolean;
 }
 export interface VideoInfo extends BasicInfo {
     errMsg?: string;

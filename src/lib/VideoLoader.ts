@@ -30,6 +30,7 @@ interface BasicInfo {
   channel?: string;
   artist?: string;
   album?: string;
+  isLive?: boolean;
 }
 
 export interface VideoInfo extends BasicInfo {
@@ -174,7 +175,8 @@ export default class VideoLoader {
           id: video.id,
           src: 'yt',
           title: new InnertubeLib.Misc.Text(videoMetadata.title).toString(),
-          channel: new InnertubeLib.Misc.Text(videoMetadata.owner?.videoOwnerRenderer?.title).toString()
+          channel: new InnertubeLib.Misc.Text(videoMetadata.owner?.videoOwnerRenderer?.title).toString(),
+          isLive: videoMetadata.viewCount.videoViewCountRenderer.isLive
         };
       }
       else if (songMetadata) {
@@ -191,13 +193,17 @@ export default class VideoLoader {
         throw new DataError('Metadata not found in response');
       }
 
-      // Fetch response from '/player' endpoint.
-      // Must use default Innertube client, otherwise livestreams will only have DASH manifest URL
-      // - what we need is the HLS manifest URL
+      // Fetch response from '/player' endpoint. But first, specify client in payload.
+      // Innertube will modify 'context.client' before submitting request.
       if (basicInfo.src === 'ytmusic') {
-        // For YouTube Music, it is also necessary to set `payload.client` to 'YTMUSIC'. Innertube will modify
-        // `context.client` with YouTube Music client info before submitting it to the '/player' endpoint.
+        // YouTube Music
         defaultPayload.client = 'YTMUSIC';
+      }
+      else if (!basicInfo.isLive) {
+        // For non-live streams, we must use 'TV' client, otherwise streams will return 403 error.
+        // For livestreams, we can use default 'WEB' client. If we use 'TV' client, we will only get
+        // DASH manifest URL - what we need is the HLS manifest URL.
+        defaultPayload.client = 'TV';
       }
       const playerResponse = await defaultInnertube.actions.execute('/player', defaultPayload) as any;
       checkAbortSignal();

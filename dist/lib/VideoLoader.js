@@ -146,7 +146,8 @@ class VideoLoader {
                     id: video.id,
                     src: 'yt',
                     title: new InnertubeLib.Misc.Text(videoMetadata.title).toString(),
-                    channel: new InnertubeLib.Misc.Text(videoMetadata.owner?.videoOwnerRenderer?.title).toString()
+                    channel: new InnertubeLib.Misc.Text(videoMetadata.owner?.videoOwnerRenderer?.title).toString(),
+                    isLive: videoMetadata.viewCount.videoViewCountRenderer.isLive
                 };
             }
             else if (songMetadata) {
@@ -168,6 +169,9 @@ class VideoLoader {
                 // For YouTube Music, it is also necessary to set `payload.client` to 'YTMUSIC'. Innertube will modify
                 // `context.client` with YouTube Music client info before submitting it to the '/player' endpoint.
                 defaultPayload.client = 'YTMUSIC';
+            }
+            else if (!basicInfo.isLive) {
+                defaultPayload.client = 'TV';
             }
             const playerResponse = await defaultInnertube.actions.execute('/player', defaultPayload);
             checkAbortSignal();
