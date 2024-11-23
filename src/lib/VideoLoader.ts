@@ -1,7 +1,8 @@
-import Innertube, * as InnertubeLib from 'volumio-youtubei.js';
-import { VideoInfo as InnertubeVideoInfo } from 'volumio-youtubei.js/dist/src/parser/youtube/index.js';
-import Format from 'volumio-youtubei.js/dist/src/parser/classes/misc/Format.js';
-import { DataError, Logger, Video } from 'yt-cast-receiver';
+import type Innertube from 'volumio-youtubei.js';
+import * as InnertubeLib from 'volumio-youtubei.js';
+import { type VideoInfo as InnertubeVideoInfo } from 'volumio-youtubei.js/dist/src/parser/youtube/index.js';
+import type Format from 'volumio-youtubei.js/dist/src/parser/classes/misc/Format.js';
+import { DataError, type Logger, type Video } from 'yt-cast-receiver';
 import ytcr from './YTCRContext.js';
 import InnertubeLoader from './InnertubeLoader.js';
 

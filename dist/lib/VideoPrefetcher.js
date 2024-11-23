@@ -33,7 +33,9 @@ class VideoPrefetcher extends events_1.default {
     }
     startPrefetchOnTimeout(video, seconds) {
         this.abortPrefetch();
-        __classPrivateFieldSet(this, _VideoPrefetcher_startPrefetchTimer, setTimeout(__classPrivateFieldGet(this, _VideoPrefetcher_instances, "m", _VideoPrefetcher_prefetch).bind(this, video), seconds * 1000), "f");
+        __classPrivateFieldSet(this, _VideoPrefetcher_startPrefetchTimer, setTimeout(() => {
+            __classPrivateFieldGet(this, _VideoPrefetcher_instances, "m", _VideoPrefetcher_prefetch).call(this, video).catch((error) => __classPrivateFieldGet(this, _VideoPrefetcher_logger, "f").error('[ytcr] Caught error while prefetching video:', error));
+        }, seconds * 1000), "f");
         __classPrivateFieldSet(this, _VideoPrefetcher_target, video, "f");
         __classPrivateFieldGet(this, _VideoPrefetcher_logger, "f").debug(`[ytcr] Going to prefetch ${video.id} in ${seconds}s`);
     }

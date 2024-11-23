@@ -28,7 +28,7 @@ class VolumeControl {
         __classPrivateFieldSet(this, _VolumeControl_currentVolume, await this.getVolume(), "f");
         __classPrivateFieldGet(this, _VolumeControl_logger, "f").debug('[ytcr] VolumeControl initialized with current volume:', __classPrivateFieldGet(this, _VolumeControl_currentVolume, "f"));
     }
-    async setVolume(volume, setInternalOnly = false) {
+    setVolume(volume, setInternalOnly = false) {
         const oldVolume = __classPrivateFieldGet(this, _VolumeControl_currentVolume, "f");
         __classPrivateFieldSet(this, _VolumeControl_currentVolume, volume, "f");
         if (!setInternalOnly) {

@@ -15,13 +15,23 @@ var __setModuleDefault = (this && this.__setModuleDefault) || (Object.create ? (
 }) : function(o, v) {
     o["default"] = v;
 });
-var __importStar = (this && this.__importStar) || function (mod) {
-    if (mod && mod.__esModule) return mod;
-    var result = {};
-    if (mod != null) for (var k in mod) if (k !== "default" && Object.prototype.hasOwnProperty.call(mod, k)) __createBinding(result, mod, k);
-    __setModuleDefault(result, mod);
-    return result;
-};
+var __importStar = (this && this.__importStar) || (function () {
+    var ownKeys = function(o) {
+        ownKeys = Object.getOwnPropertyNames || function (o) {
+            var ar = [];
+            for (var k in o) if (Object.prototype.hasOwnProperty.call(o, k)) ar[ar.length] = k;
+            return ar;
+        };
+        return ownKeys(o);
+    };
+    return function (mod) {
+        if (mod && mod.__esModule) return mod;
+        var result = {};
+        if (mod != null) for (var k = ownKeys(mod), i = 0; i < k.length; i++) if (k[i] !== "default") __createBinding(result, mod, k[i]);
+        __setModuleDefault(result, mod);
+        return result;
+    };
+})();
 var __classPrivateFieldSet = (this && this.__classPrivateFieldSet) || function (receiver, state, value, kind, f) {
     if (kind === "m") throw new TypeError("Private method is not writable");
     if (kind === "a" && !f) throw new TypeError("Private accessor was defined without a setter");
@@ -162,15 +172,16 @@ class VideoLoader {
             if (!basicInfo) {
                 throw new yt_cast_receiver_1.DataError('Metadata not found in response');
             }
-            // Fetch response from '/player' endpoint.
-            // Must use default Innertube client, otherwise livestreams will only have DASH manifest URL
-            // - what we need is the HLS manifest URL
+            // Fetch response from '/player' endpoint. But first, specify client in payload.
+            // Innertube will modify 'context.client' before submitting request.
             if (basicInfo.src === 'ytmusic') {
-                // For YouTube Music, it is also necessary to set `payload.client` to 'YTMUSIC'. Innertube will modify
-                // `context.client` with YouTube Music client info before submitting it to the '/player' endpoint.
+                // YouTube Music
                 defaultPayload.client = 'YTMUSIC';
             }
             else if (!basicInfo.isLive) {
+                // For non-live streams, we must use 'TV' client, otherwise streams will return 403 error.
+                // For livestreams, we can use default 'WEB' client. If we use 'TV' client, we will only get
+                // DASH manifest URL - what we need is the HLS manifest URL.
                 defaultPayload.client = 'TV';
             }
             const playerResponse = await defaultInnertube.actions.execute('/player', defaultPayload);

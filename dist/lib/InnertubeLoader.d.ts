@@ -1,5 +1,5 @@
 import Innertube from 'volumio-youtubei.js';
-import { Logger } from 'yt-cast-receiver';
+import { type Logger } from 'yt-cast-receiver';
 export interface InnertubeLoaderGetInstanceResult {
     innertube: Innertube;
 }

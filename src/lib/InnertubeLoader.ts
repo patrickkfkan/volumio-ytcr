@@ -1,7 +1,7 @@
 import Innertube from 'volumio-youtubei.js';
 import BG, { type BgConfig } from 'bgutils-js';
 import { JSDOM } from 'jsdom';
-import { Logger } from 'yt-cast-receiver';
+import { type Logger } from 'yt-cast-receiver';
 import ytcr from './YTCRContext';
 
 export interface InnertubeLoaderGetInstanceResult {

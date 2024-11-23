@@ -39,11 +39,11 @@ class YTCRNowPlayingMetadataProvider {
                 return null;
         }
     }
-    async getAlbumInfo() {
-        return null;
+    getAlbumInfo() {
+        return Promise.resolve(null);
     }
-    async getArtistInfo() {
-        return null;
+    getArtistInfo() {
+        return Promise.resolve(null);
     }
 }
 _YTCRNowPlayingMetadataProvider_player = new WeakMap(), _YTCRNowPlayingMetadataProvider_logger = new WeakMap(), _YTCRNowPlayingMetadataProvider_instances = new WeakSet(), _YTCRNowPlayingMetadataProvider_getMusicServicePlugin = async function _YTCRNowPlayingMetadataProvider_getMusicServicePlugin(pluginName, pluginPrettyName, requiredVersion) {

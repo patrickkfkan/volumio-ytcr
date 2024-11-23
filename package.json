@@ -39,12 +39,14 @@
 		"@types/jsdom": "^21.1.7",
 		"@types/network-interfaces": "^1.1.0",
 		"@types/node": "^20.5.1",
+		"@types/semver": "^7.5.8",
 		"@types/string-format": "^2.0.0",
 		"@types/tough-cookie": "^4.0.2",
-		"@typescript-eslint/eslint-plugin": "^5.56.0",
-		"@typescript-eslint/parser": "^5.56.0",
-		"eslint": "^8.36.0",
+		"@typescript-eslint/eslint-plugin": "^8.6.0",
+		"@typescript-eslint/parser": "^8.6.0",
+		"eslint": "^9.10.0",
 		"typescript": "^5.5.4",
+		"typescript-eslint": "^8.6.0",
 		"winston": "^3.8.2"
 	},
 	"dependencies": {

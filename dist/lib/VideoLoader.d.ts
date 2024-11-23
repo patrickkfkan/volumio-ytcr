@@ -1,4 +1,4 @@
-import { Logger, Video } from 'yt-cast-receiver';
+import { type Logger, type Video } from 'yt-cast-receiver';
 interface BasicInfo {
     id: string;
     src?: 'yt' | 'ytmusic';
