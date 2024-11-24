@@ -6,6 +6,10 @@ Plugin that enables Volumio to act a YouTube Cast receiver device. Supports cast
 
 # Changelog
 
+2.0.0
+- Release for Bookworm-based Volumio
+- Fix fetching of stream URL through po_tokens and passing appropriate client type (otherwise streams will give 403 error)
+
 1.1.2
 - Fix broken playback due to YT changes (credit: [#713] (https://github.com/LuanRT/YouTube.js/pull/713))
 
