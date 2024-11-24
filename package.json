@@ -61,6 +61,6 @@
 		"string-format": "^2.0.0",
 		"v-conf": "^1.4.2",
 		"volumio-youtubei.js": "file:dep/volumio-youtubei.js-1.2.1.tgz",
-		"yt-cast-receiver": "^1.2.4"
+		"yt-cast-receiver": "^1.3.0"
 	}
 }
