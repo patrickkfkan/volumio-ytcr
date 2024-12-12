@@ -1,5 +1,4 @@
-import { Logger, Video } from 'yt-cast-receiver';
-import { AbortSignal } from 'abort-controller';
+import { type Logger, type Video } from 'yt-cast-receiver';
 interface BasicInfo {
     id: string;
     src?: 'yt' | 'ytmusic';
@@ -7,6 +6,7 @@ interface BasicInfo {
     channel?: string;
     artist?: string;
     album?: string;
+    isLive?: boolean;
 }
 export interface VideoInfo extends BasicInfo {
     errMsg?: string;
