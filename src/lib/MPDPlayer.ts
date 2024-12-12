@@ -647,7 +647,13 @@ export default class MPDPlayer extends Player {
       this.#currentVideoInfo = this.#prefetchedAndQueuedVideoInfo;
       this.#clearPrefetchedVideoExpiryTimer();
       this.#prefetchedAndQueuedVideoInfo = null;
-      await this.queue.next();
+      const nextInQueue = await this.queue.next();
+      if (!nextInQueue) { // Already at end of queue - check if prefetched video is autoplay
+        const autoplay = this.queue.getState().autoplay;
+        if (autoplay?.id === this.#currentVideoInfo.id) {
+          this.queue.setAsCurrent(autoplay);
+        }
+      }
       await this.notifyExternalStateChange(Constants.PLAYER_STATUSES.PLAYING);
       this.#checkAndStartPrefetch(mpdStatus);
       return;
