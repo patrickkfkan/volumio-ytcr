@@ -700,7 +700,7 @@ export default class MPDPlayer extends Player {
             songIdInfo = await this.#mpdClient.api.queue.id(this.#currentVideoInfo.mpdSongId);
           }
         }
-        catch (error) {
+        catch (_error: unknown) {
           songIdInfo = null;
         }
         this.#currentVideoInfo = null;

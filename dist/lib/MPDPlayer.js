@@ -620,7 +620,7 @@ _MPDPlayer_config = new WeakMap(), _MPDPlayer_currentVideoInfo = new WeakMap(), 
                     songIdInfo = await __classPrivateFieldGet(this, _MPDPlayer_mpdClient, "f").api.queue.id(__classPrivateFieldGet(this, _MPDPlayer_currentVideoInfo, "f").mpdSongId);
                 }
             }
-            catch (error) {
+            catch (_error) {
                 songIdInfo = null;
             }
             __classPrivateFieldSet(this, _MPDPlayer_currentVideoInfo, null, "f");
