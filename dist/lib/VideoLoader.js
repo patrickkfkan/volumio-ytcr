@@ -48,6 +48,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 };
 var _VideoLoader_instances, _VideoLoader_logger, _VideoLoader_defaultInnertubeLoader, _VideoLoader_tvInnertubeLoader, _VideoLoader_getInnertubeInstances, _VideoLoader_setTVClientContext, _VideoLoader_getThumbnail, _VideoLoader_chooseFormat, _VideoLoader_parseStreamData, _VideoLoader_getStreamUrlFromHLS;
 Object.defineProperty(exports, "__esModule", { value: true });
+const node_fetch_1 = __importDefault(require("node-fetch"));
 const InnertubeLib = __importStar(require("volumio-youtubei.js"));
 const yt_cast_receiver_1 = require("yt-cast-receiver");
 const YTCRContext_js_1 = __importDefault(require("./YTCRContext.js"));
@@ -311,7 +312,7 @@ _VideoLoader_logger = new WeakMap(), _VideoLoader_defaultInnertubeLoader = new W
     if (!targetQuality || targetQuality === 'auto') {
         return manifestUrl;
     }
-    const res = await fetch(manifestUrl);
+    const res = await (0, node_fetch_1.default)(manifestUrl);
     const manifestContents = await res.text();
     // Match Resolution and Url
     const regex = /#EXT-X-STREAM-INF.*RESOLUTION=(\d+x\d+).*[\r\n](.+)/gm;

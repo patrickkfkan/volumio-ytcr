@@ -15,6 +15,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 };
 var _MPDPlayer_instances, _MPDPlayer_config, _MPDPlayer_currentVideoInfo, _MPDPlayer_prefetchedAndQueuedVideoInfo, _MPDPlayer_prefetchedVideoExpiryTimer, _MPDPlayer_mpdClient, _MPDPlayer_mpdClientInitTimer, _MPDPlayer_volumeControl, _MPDPlayer_videoLoader, _MPDPlayer_loadVideoAbortController, _MPDPlayer_videoPrefetcher, _MPDPlayer_playlistEventListener, _MPDPlayer_autoplayModeChangeListener, _MPDPlayer_subsystemEventEmitter, _MPDPlayer_destroyed, _MPDPlayer_asleep, _MPDPlayer_clearMPDClientInitTimer, _MPDPlayer_initMPDClient, _MPDPlayer_abortLoadVideo, _MPDPlayer_addToMPDQueue, _MPDPlayer_handlePlaylistEvent, _MPDPlayer_handleAutoplayModeChange, _MPDPlayer_refreshPrefetch, _MPDPlayer_checkAndStartPrefetch, _MPDPlayer_cancelPrefetch, _MPDPlayer_clearPrefetch, _MPDPlayer_clearPrefetchedVideoExpiryTimer, _MPDPlayer_handlePrefetchedVideo, _MPDPlayer_handleExternalMPDEvent;
 Object.defineProperty(exports, "__esModule", { value: true });
+const abort_controller_1 = __importDefault(require("abort-controller"));
 const yt_cast_receiver_1 = require("yt-cast-receiver");
 const mpd_api_1 = __importDefault(require("mpd-api"));
 const MPDSubsystemEventEmitter_js_1 = __importDefault(require("./MPDSubsystemEventEmitter.js"));
@@ -65,7 +66,7 @@ class MPDPlayer extends yt_cast_receiver_1.Player {
         this.emit('action', { name: 'play', data: { videoId: video.id, position } });
         this.logger.debug(`[ytcr] MPDPlayer: play ${video.id} at position ${position}s`);
         __classPrivateFieldGet(this, _MPDPlayer_instances, "m", _MPDPlayer_abortLoadVideo).call(this);
-        __classPrivateFieldSet(this, _MPDPlayer_loadVideoAbortController, new AbortController(), "f");
+        __classPrivateFieldSet(this, _MPDPlayer_loadVideoAbortController, new abort_controller_1.default(), "f");
         let videoInfo;
         try {
             videoInfo = await __classPrivateFieldGet(this, _MPDPlayer_videoLoader, "f").getInfo(video, __classPrivateFieldGet(this, _MPDPlayer_loadVideoAbortController, "f").signal);

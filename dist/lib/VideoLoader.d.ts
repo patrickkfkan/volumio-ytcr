@@ -1,3 +1,4 @@
+import { AbortSignal } from 'abort-controller';
 import { type Logger, type Video } from 'yt-cast-receiver';
 interface BasicInfo {
     id: string;

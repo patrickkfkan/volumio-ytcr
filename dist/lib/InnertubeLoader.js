@@ -15,6 +15,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 };
 var _InnertubeLoader_instances, _InnertubeLoader_innertube, _InnertubeLoader_pendingPromise, _InnertubeLoader_poTokenRefreshTimer, _InnertubeLoader_logger, _InnertubeLoader_onCreate, _InnertubeLoader_recreateWithPOToken, _InnertubeLoader_createInstance, _InnertubeLoader_clearPOTokenRefreshTimer, _InnertubeLoader_resolveGetInstanceResult, _InnertubeLoader_refreshPOToken, _InnertubeLoader_generatePoToken;
 Object.defineProperty(exports, "__esModule", { value: true });
+const node_fetch_1 = __importDefault(require("node-fetch"));
 const volumio_youtubei_js_1 = __importDefault(require("volumio-youtubei.js"));
 const bgutils_js_1 = __importDefault(require("bgutils-js"));
 const jsdom_1 = require("jsdom");
@@ -162,7 +163,7 @@ _InnertubeLoader_innertube = new WeakMap(), _InnertubeLoader_pendingPromise = ne
 async function _InnertubeLoader_generatePoToken(identifier) {
     const requestKey = 'O43z0dpjhgX20SCx4KAo';
     const bgConfig = {
-        fetch: (url, options) => fetch(url, options),
+        fetch: (url, options) => (0, node_fetch_1.default)(url, options),
         globalObj: globalThis,
         identifier,
         requestKey

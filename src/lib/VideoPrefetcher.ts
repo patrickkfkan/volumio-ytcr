@@ -1,3 +1,4 @@
+import AbortController from 'abort-controller';
 import EventEmitter from 'events';
 import { type Logger, type Video } from 'yt-cast-receiver';
 import type VideoLoader from './VideoLoader';

@@ -1,3 +1,5 @@
+import fetch from 'node-fetch';
+import { AbortSignal } from 'abort-controller';
 import type Innertube from 'volumio-youtubei.js';
 import * as InnertubeLib from 'volumio-youtubei.js';
 import { type VideoInfo as InnertubeVideoInfo } from 'volumio-youtubei.js/dist/src/parser/youtube/index.js';

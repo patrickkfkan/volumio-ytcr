@@ -1,3 +1,4 @@
+import AbortController from 'abort-controller';
 import { Constants, PLAYLIST_EVENT_TYPES, Player, type PlayerState, type Video, type Volume } from 'yt-cast-receiver';
 import mpdApi, { type MPDApi } from 'mpd-api';
 import { type MPD } from 'mpd2';

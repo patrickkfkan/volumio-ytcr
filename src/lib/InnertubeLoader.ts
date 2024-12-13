@@ -1,3 +1,4 @@
+import fetch from 'node-fetch';
 import Innertube from 'volumio-youtubei.js';
 import BG, { type BgConfig } from 'bgutils-js';
 import { JSDOM } from 'jsdom';
@@ -181,7 +182,7 @@ export default class InnertubeLoader {
   async #generatePoToken(identifier: string) {
     const requestKey = 'O43z0dpjhgX20SCx4KAo';
     const bgConfig: BgConfig = {
-      fetch: (url, options) => fetch(url, options),
+      fetch: (url, options) => fetch(url as any, options as any) as any,
       globalObj: globalThis,
       identifier,
       requestKey
