@@ -35,6 +35,8 @@
 		"volumio": ">=3"
 	},
 	"devDependencies": {
+		"@types/atob": "^2.1.4",
+		"@types/btoa": "^1.2.5",
 		"@types/fs-extra": "^8.1.2",
 		"@types/jsdom": "^21.1.7",
 		"@types/network-interfaces": "^1.1.0",
@@ -47,7 +49,9 @@
 	},
 	"dependencies": {
 		"abort-controller": "^3.0.0",
+		"atob": "^2.1.2",
 		"bgutils-js": "^3.2.0",
+		"btoa": "^1.2.1",
 		"jsdom": "^21.1.2",
 		"kew": "^0.7.0",
 		"mpd-api": "^1.1.2",
