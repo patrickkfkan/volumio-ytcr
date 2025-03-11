@@ -6,6 +6,9 @@ Plugin that enables Volumio to act a YouTube Cast receiver device. Supports cast
 
 # Changelog
 
+2.0.3
+- Update YT dependencies
+
 2.0.2
 - Update YT dependencies
 
