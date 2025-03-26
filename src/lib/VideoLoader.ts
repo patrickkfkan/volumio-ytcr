@@ -234,7 +234,7 @@ export default class VideoLoader {
         streamInfo = await this.#chooseFormat(innertubeVideoInfo);
       }
       else if (innertubeVideoInfo.streaming_data?.hls_manifest_url) {
-        const targetQuality = ytcr.getConfigValue('liveStreamQuality', 'auto');
+        const targetQuality = ytcr.getConfigValue('liveStreamQuality');
         streamInfo = {
           url: await this.#getStreamUrlFromHLS(innertubeVideoInfo.streaming_data.hls_manifest_url, targetQuality)
         };
@@ -288,8 +288,8 @@ export default class VideoLoader {
     const preferredFormat = {
       ...BEST_AUDIO_FORMAT
     };
-    const prefetch = ytcr.getConfigValue('prefetch', true);
-    const preferOpus = prefetch && ytcr.getConfigValue('preferOpus', false);
+    const prefetch = ytcr.getConfigValue('prefetch');
+    const preferOpus = prefetch && ytcr.getConfigValue('preferOpus');
     if (preferOpus) {
       this.#logger.debug('[ytcr] Preferred format is Opus');
       preferredFormat.format = 'opus';

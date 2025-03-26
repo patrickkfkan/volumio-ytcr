@@ -1,5 +1,5 @@
 import { DataStore } from 'yt-cast-receiver';
-import ytcr from './YTCRContext.js';
+import ytcr from './YTCRContext';
 
 const BUNDLE_KEY = 'yt-cast-receiver';
 const TTL = 3600000;
@@ -15,15 +15,15 @@ export default class ReceiverDataStore extends DataStore {
 
   // eslint-disable-next-line @typescript-eslint/no-unnecessary-type-parameters
   set<T>(key: string, value: T): Promise<void> {
-    const bundle = ytcr.getConfigValue(BUNDLE_KEY, {}, true);
+    const bundle = ytcr.getConfigValue(BUNDLE_KEY);
     bundle[key] = value;
-    ytcr.setConfigValue(BUNDLE_KEY, bundle, true);
+    ytcr.setConfigValue(BUNDLE_KEY, bundle);
     this.#setMarkDirtyTimer();
     return Promise.resolve();
   }
 
   get<T>(key: string): Promise<T | null> {
-    const bundle = ytcr.getConfigValue(BUNDLE_KEY, {}, true);
+    const bundle = ytcr.getConfigValue(BUNDLE_KEY);
     return Promise.resolve(bundle[key] || null);
   }
 

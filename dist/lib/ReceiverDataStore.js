@@ -16,7 +16,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 var _ReceiverDataStore_instances, _ReceiverDataStore_markDirtyTimer, _ReceiverDataStore_setMarkDirtyTimer;
 Object.defineProperty(exports, "__esModule", { value: true });
 const yt_cast_receiver_1 = require("yt-cast-receiver");
-const YTCRContext_js_1 = __importDefault(require("./YTCRContext.js"));
+const YTCRContext_1 = __importDefault(require("./YTCRContext"));
 const BUNDLE_KEY = 'yt-cast-receiver';
 const TTL = 3600000;
 class ReceiverDataStore extends yt_cast_receiver_1.DataStore {
@@ -28,18 +28,18 @@ class ReceiverDataStore extends yt_cast_receiver_1.DataStore {
     }
     // eslint-disable-next-line @typescript-eslint/no-unnecessary-type-parameters
     set(key, value) {
-        const bundle = YTCRContext_js_1.default.getConfigValue(BUNDLE_KEY, {}, true);
+        const bundle = YTCRContext_1.default.getConfigValue(BUNDLE_KEY);
         bundle[key] = value;
-        YTCRContext_js_1.default.setConfigValue(BUNDLE_KEY, bundle, true);
+        YTCRContext_1.default.setConfigValue(BUNDLE_KEY, bundle);
         __classPrivateFieldGet(this, _ReceiverDataStore_instances, "m", _ReceiverDataStore_setMarkDirtyTimer).call(this);
         return Promise.resolve();
     }
     get(key) {
-        const bundle = YTCRContext_js_1.default.getConfigValue(BUNDLE_KEY, {}, true);
+        const bundle = YTCRContext_1.default.getConfigValue(BUNDLE_KEY);
         return Promise.resolve(bundle[key] || null);
     }
     clear() {
-        YTCRContext_js_1.default.deleteConfigValue(BUNDLE_KEY);
+        YTCRContext_1.default.deleteConfigValue(BUNDLE_KEY);
     }
 }
 _ReceiverDataStore_markDirtyTimer = new WeakMap(), _ReceiverDataStore_instances = new WeakSet(), _ReceiverDataStore_setMarkDirtyTimer = function _ReceiverDataStore_setMarkDirtyTimer() {
@@ -48,7 +48,7 @@ _ReceiverDataStore_markDirtyTimer = new WeakMap(), _ReceiverDataStore_instances 
         __classPrivateFieldSet(this, _ReceiverDataStore_markDirtyTimer, null, "f");
     }
     __classPrivateFieldSet(this, _ReceiverDataStore_markDirtyTimer, setTimeout(() => {
-        YTCRContext_js_1.default.setConfigValue('dataStoreDirty', true);
+        YTCRContext_1.default.setConfigValue('dataStoreDirty', true);
         __classPrivateFieldSet(this, _ReceiverDataStore_markDirtyTimer, null, "f");
     }, TTL), "f");
 };
