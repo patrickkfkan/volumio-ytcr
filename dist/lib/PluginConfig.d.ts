@@ -17,7 +17,7 @@ export interface PluginConfigSchema {
     preferOpus: PluginConfigSchemaEntry<boolean>;
     liveStreamQuality: PluginConfigSchemaEntry<string | 'auto'>;
     'yt-cast-receiver': PluginConfigSchemaEntry<Record<string, any>, true>;
-    dataStoreDirty: PluginConfigSchemaEntry<boolean>;
+    dataStoreLastModified: PluginConfigSchemaEntry<number | null>;
     debug: PluginConfigSchemaEntry<boolean>;
 }
 export declare const PLUGIN_CONFIG_SCHEMA: PluginConfigSchema;

@@ -13,7 +13,7 @@ exports.PLUGIN_CONFIG_SCHEMA = {
     preferOpus: { defaultValue: false, json: false },
     liveStreamQuality: { defaultValue: 'auto', json: false },
     'yt-cast-receiver': { defaultValue: {}, json: true },
-    dataStoreDirty: { defaultValue: false, json: false },
+    dataStoreLastModified: { defaultValue: null, json: false },
     debug: { defaultValue: false, json: false }
 };
 //# sourceMappingURL=PluginConfig.js.map

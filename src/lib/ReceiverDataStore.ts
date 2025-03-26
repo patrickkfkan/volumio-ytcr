@@ -6,19 +6,12 @@ const TTL = 3600000;
 
 export default class ReceiverDataStore extends DataStore {
 
-  #markDirtyTimer: NodeJS.Timeout | null;
-
-  constructor() {
-    super();
-    this.#markDirtyTimer = null;
-  }
-
   // eslint-disable-next-line @typescript-eslint/no-unnecessary-type-parameters
   set<T>(key: string, value: T): Promise<void> {
     const bundle = ytcr.getConfigValue(BUNDLE_KEY);
     bundle[key] = value;
     ytcr.setConfigValue(BUNDLE_KEY, bundle);
-    this.#setMarkDirtyTimer();
+    ytcr.setConfigValue('dataStoreLastModified', new Date().getTime());
     return Promise.resolve();
   }
 
@@ -29,16 +22,14 @@ export default class ReceiverDataStore extends DataStore {
 
   clear() {
     ytcr.deleteConfigValue(BUNDLE_KEY);
+    ytcr.deleteConfigValue('dataStoreLastModified');
   }
 
-  #setMarkDirtyTimer() {
-    if (this.#markDirtyTimer) {
-      clearTimeout(this.#markDirtyTimer);
-      this.#markDirtyTimer = null;
+  isExpired() {
+    const lastModified = ytcr.getConfigValue('dataStoreLastModified');
+    if (lastModified === null) {
+      return false;
     }
-    this.#markDirtyTimer = setTimeout(() => {
-      ytcr.setConfigValue('dataStoreDirty', true);
-      this.#markDirtyTimer = null;
-    }, TTL);
+    return new Date().getTime() - lastModified >= TTL;
   }
 }

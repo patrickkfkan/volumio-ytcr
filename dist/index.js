@@ -205,10 +205,9 @@ class ControllerYTCR {
     onStart() {
         const defer = kew_1.default.defer();
         YTCRContext_js_1.default.init(__classPrivateFieldGet(this, _ControllerYTCR_context, "f"), __classPrivateFieldGet(this, _ControllerYTCR_config, "f"));
-        if (YTCRContext_js_1.default.getConfigValue('dataStoreDirty') === true) {
-            __classPrivateFieldGet(this, _ControllerYTCR_logger, "f").info('[ytcr] Data store was marked dirty - clearing it...');
+        if (__classPrivateFieldGet(this, _ControllerYTCR_dataStore, "f").isExpired()) {
+            __classPrivateFieldGet(this, _ControllerYTCR_logger, "f").info('[ytcr] Data store TTL expired - clearing it...');
             __classPrivateFieldGet(this, _ControllerYTCR_dataStore, "f").clear();
-            YTCRContext_js_1.default.deleteConfigValue('dataStoreDirty');
         }
         __classPrivateFieldSet(this, _ControllerYTCR_volumeControl, new VolumeControl_js_1.default(__classPrivateFieldGet(this, _ControllerYTCR_commandRouter, "f"), __classPrivateFieldGet(this, _ControllerYTCR_logger, "f")), "f");
         const playerConfig = {

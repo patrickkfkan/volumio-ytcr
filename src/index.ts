@@ -185,10 +185,9 @@ class ControllerYTCR implements NowPlayingPluginSupport {
 
     ytcr.init(this.#context, this.#config);
 
-    if (ytcr.getConfigValue('dataStoreDirty') === true) {
-      this.#logger.info('[ytcr] Data store was marked dirty - clearing it...');
+    if (this.#dataStore.isExpired()) {
+      this.#logger.info('[ytcr] Data store TTL expired - clearing it...');
       this.#dataStore.clear();
-      ytcr.deleteConfigValue('dataStoreDirty');
     }
 
     this.#volumeControl = new VolumeControl(this.#commandRouter, this.#logger);
