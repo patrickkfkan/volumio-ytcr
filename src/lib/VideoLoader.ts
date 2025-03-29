@@ -200,7 +200,7 @@ export default class VideoLoader {
       // Innertube will modify 'context.client' before submitting request.
       if (basicInfo.src === 'ytmusic') {
         // YouTube Music
-        defaultPayload.client = 'YTMUSIC';
+        defaultPayload.client = 'TV'; // YTMUSIC return 403 with Youtube Music casting from Android
       }
       else if (!basicInfo.isLive) {
         // For non-live streams, we must use 'TV' client, otherwise streams will return 403 error.
