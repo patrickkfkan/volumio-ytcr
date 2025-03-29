@@ -208,6 +208,11 @@ export default class VideoLoader {
         // DASH manifest URL - what we need is the HLS manifest URL.
         defaultPayload.client = 'TV';
       }
+
+      // XXX ok with 'Youtube Music' casting from Android
+      basicInfo.src = 'yt';
+      defaultPayload.client = 'TV';
+      
       const playerResponse = await defaultInnertube.actions.execute('/player', defaultPayload) as any;
       checkAbortSignal();
 
