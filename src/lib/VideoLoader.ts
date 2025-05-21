@@ -201,10 +201,10 @@ export default class VideoLoader {
         defaultPayload.client = 'YTMUSIC';
       }
       else if (!basicInfo.isLive) {
-        // For non-live streams, we must use 'TV' client, otherwise streams will return 403 error.
-        // For livestreams, we can use default 'WEB' client. If we use 'TV' client, we will only get
+        // For non-live streams, we must use 'TV_EMBEDDED' client, otherwise streams will return 403 error.
+        // For livestreams, we can use default 'WEB' client. If we use 'TV_EMBEDDED' client, we will only get
         // DASH manifest URL - what we need is the HLS manifest URL.
-        defaultPayload.client = 'TV';
+        defaultPayload.client = 'TV_EMBEDDED';
       }
       const playerResponse = await defaultInnertube.actions.execute('/player', defaultPayload) as any;
       checkAbortSignal();
