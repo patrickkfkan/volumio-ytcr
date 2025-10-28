@@ -16,6 +16,7 @@ import PairingHelper from './lib/PairingHelper.js';
 import ReceiverDataStore from './lib/ReceiverDataStore.js';
 import { type NowPlayingPluginSupport } from 'now-playing-common';
 import YTCRNowPlayingMetadataProvider from './lib/YTCRNowPlayingMetadataProvider';
+import InnertubeLoader from './lib/InnertubeLoader';
 
 const IDLE_STATE = {
   status: 'stop',
@@ -225,14 +226,12 @@ class ControllerYTCR implements NowPlayingPluginSupport {
     receiver.on('senderConnect', (sender: Sender) => {
       this.#logger.info('[ytcr] ***** Sender connected *****');
       ytcr.toast('success', ytcr.getI18n('YTCR_CONNECTED', sender.name));
-      playerConfig.videoLoader.notifySendersChanged(receiver.getConnectedSenders());
       this.refreshUIConfig();
     });
 
     receiver.on('senderDisconnect', (sender: Sender) => {
       this.#logger.info('[ytcr] ***** Sender disconnected *****');
       ytcr.toast('warning', ytcr.getI18n('YTCR_DISCONNECTED', sender.name));
-      playerConfig.videoLoader.notifySendersChanged(receiver.getConnectedSenders());
       this.refreshUIConfig();
     });
 
@@ -385,7 +384,7 @@ class ControllerYTCR implements NowPlayingPluginSupport {
     });
   }
 
-  configSaveI18n(data: any) {
+  async configSaveI18n(data: any) {
     const oldRegion = ytcr.getConfigValue('region');
     const oldLanguage = ytcr.getConfigValue('language');
     const region = data.region.value;
@@ -396,7 +395,7 @@ class ControllerYTCR implements NowPlayingPluginSupport {
       ytcr.setConfigValue('language', language);
 
       if (this.#player) {
-        this.#player.videoLoader.refreshI18nConfig();
+        await this.#player.videoLoader.refreshI18nConfig();
       }
     }
 
@@ -489,6 +488,7 @@ class ControllerYTCR implements NowPlayingPluginSupport {
       this.unsetVolatile();
       this.#volumeControl.unregisterVolumioVolumeChangeListener();
       await this.#player.destroy();
+      await InnertubeLoader.reset();
       ytcr.reset();
       this.#nowPlayingMetadataProvider = null;
       defer.resolve();

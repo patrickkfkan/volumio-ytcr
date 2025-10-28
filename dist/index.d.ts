@@ -9,7 +9,7 @@ declare class ControllerYTCR implements NowPlayingPluginSupport {
     onStart(): any;
     configSaveConnection(data: any): void;
     configConfirmSaveConnection(data: any): void;
-    configSaveI18n(data: any): void;
+    configSaveI18n(data: any): Promise<void>;
     configSaveOther(data: any): Promise<void>;
     configClearDataStore(): void;
     configConfirmClearDataStore(): void;

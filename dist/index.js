@@ -64,6 +64,7 @@ const VideoLoader_js_1 = __importDefault(require("./lib/VideoLoader.js"));
 const PairingHelper_js_1 = __importDefault(require("./lib/PairingHelper.js"));
 const ReceiverDataStore_js_1 = __importDefault(require("./lib/ReceiverDataStore.js"));
 const YTCRNowPlayingMetadataProvider_1 = __importDefault(require("./lib/YTCRNowPlayingMetadataProvider"));
+const InnertubeLoader_1 = __importDefault(require("./lib/InnertubeLoader"));
 const IDLE_STATE = {
     status: 'stop',
     service: 'ytcr',
@@ -241,13 +242,11 @@ class ControllerYTCR {
         receiver.on('senderConnect', (sender) => {
             __classPrivateFieldGet(this, _ControllerYTCR_logger, "f").info('[ytcr] ***** Sender connected *****');
             YTCRContext_js_1.default.toast('success', YTCRContext_js_1.default.getI18n('YTCR_CONNECTED', sender.name));
-            playerConfig.videoLoader.notifySendersChanged(receiver.getConnectedSenders());
             this.refreshUIConfig();
         });
         receiver.on('senderDisconnect', (sender) => {
             __classPrivateFieldGet(this, _ControllerYTCR_logger, "f").info('[ytcr] ***** Sender disconnected *****');
             YTCRContext_js_1.default.toast('warning', YTCRContext_js_1.default.getI18n('YTCR_DISCONNECTED', sender.name));
-            playerConfig.videoLoader.notifySendersChanged(receiver.getConnectedSenders());
             this.refreshUIConfig();
         });
         __classPrivateFieldGet(this, _ControllerYTCR_player, "f").on('action', (action) => {
@@ -376,7 +375,7 @@ class ControllerYTCR {
             YTCRContext_js_1.default.toast('success', YTCRContext_js_1.default.getI18n('YTCR_RESTARTED'));
         });
     }
-    configSaveI18n(data) {
+    async configSaveI18n(data) {
         const oldRegion = YTCRContext_js_1.default.getConfigValue('region');
         const oldLanguage = YTCRContext_js_1.default.getConfigValue('language');
         const region = data.region.value;
@@ -385,7 +384,7 @@ class ControllerYTCR {
             YTCRContext_js_1.default.setConfigValue('region', region);
             YTCRContext_js_1.default.setConfigValue('language', language);
             if (__classPrivateFieldGet(this, _ControllerYTCR_player, "f")) {
-                __classPrivateFieldGet(this, _ControllerYTCR_player, "f").videoLoader.refreshI18nConfig();
+                await __classPrivateFieldGet(this, _ControllerYTCR_player, "f").videoLoader.refreshI18nConfig();
             }
         }
         YTCRContext_js_1.default.toast('success', YTCRContext_js_1.default.getI18n('YTCR_SETTINGS_SAVED'));
@@ -433,6 +432,7 @@ class ControllerYTCR {
             this.unsetVolatile();
             __classPrivateFieldGet(this, _ControllerYTCR_volumeControl, "f").unregisterVolumioVolumeChangeListener();
             await __classPrivateFieldGet(this, _ControllerYTCR_player, "f").destroy();
+            await InnertubeLoader_1.default.reset();
             YTCRContext_js_1.default.reset();
             __classPrivateFieldSet(this, _ControllerYTCR_nowPlayingMetadataProvider, null, "f");
             defer.resolve();
