@@ -726,7 +726,7 @@ export default class MPDPlayer extends Player {
           const mpdStatus: any = await this.#mpdClient?.api.status.get();
           let shouldResolve = true;
           for (const [ key, value ] of Object.entries(resolveOn)) {
-            if (mpdStatus[key] === undefined || mpdStatus[key].toString() !== value.toString()) {
+            if (mpdStatus[key] === undefined || mpdStatus[key].toString() !== value) {
               shouldResolve = false;
               break;
             }

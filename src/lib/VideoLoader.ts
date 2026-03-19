@@ -373,6 +373,7 @@ export default class VideoLoader {
     }
 
     const streamUrl = format ? await format.decipher(innertube.session.player) : null;
+    // eslint-disable-next-line @typescript-eslint/no-misused-spread
     const streamData = format ? { ...format, url: streamUrl } as Format : null;
     if (streamData) {
       return this.#parseStreamData(streamData);

@@ -412,7 +412,7 @@ class ControllerYTCR implements NowPlayingPluginSupport {
   }
 
   acceptDisclaimer() {
-    this.configSaveDisclaimer({
+    return this.configSaveDisclaimer({
       hasAcceptedDisclaimer: true
     });
   }
