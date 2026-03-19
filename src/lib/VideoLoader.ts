@@ -65,7 +65,7 @@ export default class VideoLoader {
   }
 
   async #getInnertube() {
-    return await (await InnertubeLoader.getInstance()).getInnertube();
+    return (await InnertubeLoader.getInstance()).getInnertube();
   }
 
   async refreshI18nConfig() {
